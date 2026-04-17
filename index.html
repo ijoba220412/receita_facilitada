@@ -2,217 +2,186 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Receitas HC IV - Sistema em Nuvem</title>
-  <link rel="stylesheet" href="02-styles.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    /* Ajustes específicos para o emissor */
-    .med-card { border-left: 4px solid var(--color-primary); margin-bottom: 16px; }
-    .med-card--sos { border-left-color: var(--color-warning); }
-    .sugestoes-lista { max-height: 250px; overflow-y: auto; z-index: 50; }
-    .receitas-anteriores { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .receita-anterior-item { background: var(--bg-tertiary); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-    @media (max-width: 640px) {
-      .a4-sheet { min-width: 100%; padding: 15px; }
-      .patient-box { grid-template-columns: 1fr 1fr; }
-      .horarios-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receitas HC IV - Emissor Visual</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Pular para formulário de receita</a>
+  <a href="#main-content" class="skip-link">Pular para o formulário</a>
 
-  <header class="header nao-imprime">
-    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-      <h1 class="header__title">
-        <i data-lucide="clipboard-plus" class="icon--md" aria-hidden="true"></i>
-        Receitas Facilitadas HC IV
-      </h1>
-      <span id="status-db" class="status-badge status-badge--warning">⏳ Conectando...</span>
+  <header class="header no-print">
+    <div class="header-title">
+      <span>📋 RECEITAS FACILITADAS HC IV</span>
+      <span id="status-db" class="badge badge-warning" style="font-size:0.75rem;">CONECTANDO...</span>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <a href="admin.html" class="btn btn--secondary">
-        <i data-lucide="settings" class="icon--sm" aria-hidden="true"></i> Admin
-      </a>
-      <button class="btn btn--primary" id="btn-salvar" onclick="salvarReceita()">
-        <i data-lucide="save" class="icon--sm" aria-hidden="true"></i> Salvar no Histórico
-      </button>
-      <button class="btn btn--success" onclick="window.print()">
-        <i data-lucide="printer" class="icon--sm" aria-hidden="true"></i> Imprimir / PDF
-      </button>
+      <button class="btn btn-success" id="btn-salvar" onclick="salvarReceita()">💾 SALVAR NO HISTÓRICO</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ IMPRIMIR / PDF</button>
     </div>
   </header>
 
   <main id="main-content" class="container">
     <!-- 1. PACIENTE E EQUIPE -->
-    <section class="card nao-imprime fade-in">
-      <h2 class="text-lg font-bold mb-md">👤 Paciente e Equipe</h2>
+    <section class="card no-print">
+      <div class="card-header">
+        <h2 class="card-title">👤 PACIENTE E EQUIPE</h2>
+      </div>
       <div class="form-grid">
-        <div class="search-wrapper col-span-2">
-          <label class="form-label">Buscar Paciente (Nome ou Prontuário)</label>
-          <div style="position:relative;">
-            <i data-lucide="search" class="icon--sm" style="position:absolute; left:12px; top:13px; color:var(--text-muted);" aria-hidden="true"></i>
-            <input type="text" id="inp-busca-paciente" class="form-input" placeholder="Digite para buscar..." autocomplete="off" style="padding-left: 36px;" aria-describedby="busca-ajuda">
-          </div>
-          <div id="sugestoes-paciente" class="sugestoes-lista" role="listbox" aria-label="Resultados da busca"></div>
-          <small id="busca-ajuda" class="text-muted" style="margin-top:4px;">Digite pelo menos 2 caracteres</small>
+        <div class="col-span-2" style="position:relative;">
+          <label class="form-label">BUSCAR PACIENTE (NOME OU PRONTUÁRIO)</label>
+          <input type="text" id="busca-paciente" class="form-input" placeholder="Digite para buscar..." autocomplete="off">
+          <div id="sugestoes-paciente" class="table-container" style="position:absolute; top:100%; left:0; right:0; z-index:50; display:none; max-height:200px; overflow-y:auto;"></div>
         </div>
         <div>
-          <label class="form-label">Prontuário</label>
-          <input type="text" id="inp-pront" class="form-input" readonly>
+          <label class="form-label">PRONTUÁRIO</label>
+          <input type="text" id="inp-prontuario" class="form-input" readonly>
         </div>
         <div>
-          <label class="form-label">Nome Completo</label>
+          <label class="form-label">NOME COMPLETO</label>
           <input type="text" id="inp-nome" class="form-input" readonly>
         </div>
         <div>
-          <label class="form-label form-label--required">Data da Consulta</label>
-          <input type="date" id="inp-data" class="form-input">
+          <label class="form-label">DATA DE NASCIMENTO</label>
+          <input type="date" id="inp-nasc" class="form-input" onchange="atualizarIdade()">
         </div>
         <div>
-          <label class="form-label form-label--required">Médico(a)</label>
-          <select id="inp-medico" class="form-select"><option value="">Carregando...</option></select>
+          <label class="form-label">IDADE (AUTO)</label>
+          <input type="text" id="inp-idade" class="form-input" readonly style="background:#f1f5f9; font-weight:bold;">
         </div>
         <div>
-          <label class="form-label">Farmacêutico(a)</label>
-          <select id="inp-farm" class="form-select"><option value="">Carregando...</option></select>
+          <label class="form-label">DATA DA CONSULTA</label>
+          <input type="date" id="inp-data-consulta" class="form-input" value="">
+        </div>
+        <div>
+          <label class="form-label">MÉDICO(A)</label>
+          <select id="inp-medico" class="form-select"><option value="">CARREGANDO...</option></select>
+        </div>
+        <div>
+          <label class="form-label">SETOR / HOSPITAL</label>
+          <select id="inp-setor" class="form-select"><option value="">CARREGANDO...</option></select>
         </div>
       </div>
 
-      <div id="container-receitas-antigas" style="display:none; margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
-        <h3 class="font-bold mb-sm">📋 Receitas Anteriores deste Paciente</h3>
-        <div id="lista-receitas-antigas" class="receitas-anteriores"></div>
-        <button class="btn btn--secondary mt-sm" onclick="novaReceita()">
-          <i data-lucide="plus" class="icon--sm" aria-hidden="true"></i> Criar Nova Receita
-        </button>
+      <div id="container-receitas-antigas" class="hidden" style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+        <h3 class="form-label">📜 RECEITAS ANTERIORES DESTE PACIENTE</h3>
+        <div id="lista-receitas-antigas" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
       </div>
     </section>
 
     <!-- 2. MEDICAMENTOS FIXOS -->
-    <section class="nao-imprime fade-in">
-      <div class="flex justify-between items-center mb-md">
-        <h2 class="text-lg font-bold">💊 Uso Contínuo (Fixos)</h2>
-        <button class="btn btn--primary" onclick="addMed('fixo')">
-          <i data-lucide="plus-circle" class="icon--sm" aria-hidden="true"></i> Adicionar
-        </button>
+    <section class="no-print">
+      <div class="card-header">
+        <h2 class="card-title">💊 USO CONTÍNUO (FIXOS)</h2>
+        <button class="btn btn-primary" onclick="addMed('fixo')">➕ ADICIONAR</button>
       </div>
       <div id="lista-fixos"></div>
-      <p id="msg-vazio-fixos" class="text-center text-muted" style="padding:30px;">Nenhum medicamento fixo adicionado</p>
+      <div id="msg-vazio-fixos" class="text-center text-muted" style="padding:20px;">Nenhum medicamento fixo adicionado</div>
     </section>
 
-    <!-- 3. MEDICAMENTOS S.O.S -->
-    <section class="nao-imprime fade-in" style="margin-top:24px;">
-      <div class="flex justify-between items-center mb-md">
-        <h2 class="text-lg font-bold">🚨 Uso S.O.S (Sintomático)</h2>
-        <button class="btn btn--warning" style="background:var(--color-warning); color:white;" onclick="addMed('sos')">
-          <i data-lucide="alert-circle" class="icon--sm" aria-hidden="true"></i> Adicionar S.O.S
-        </button>
+    <!-- 3. MEDICAMENTOS SOS -->
+    <section class="no-print" style="margin-top:24px;">
+      <div class="card-header">
+        <h2 class="card-title">🚨 USO S.O.S (SINTOMÁTICO)</h2>
+        <button class="btn btn-warning" style="background:var(--warning); color:white;" onclick="addMed('sos')">➕ ADICIONAR SOS</button>
       </div>
       <div id="lista-sos"></div>
-      <p id="msg-vazio-sos" class="text-center text-muted" style="padding:30px;">Nenhum medicamento S.O.S adicionado</p>
+      <div id="msg-vazio-sos" class="text-center text-muted" style="padding:20px;">Nenhum medicamento SOS adicionado</div>
     </section>
 
     <!-- 4. PRÉ-VISUALIZAÇÃO A4 (IMPRESSÃO) -->
-    <div class="print-container nao-imprime-header" style="margin-top:40px;">
+    <div class="print-container">
       <div class="a4-sheet">
         <div class="print-header">
           <div class="print-title">HOSPITAL DO CÂNCER IV – HC IV</div>
-          <div class="patient-box">
-            <div class="patient-field"><span class="label">Paciente</span><span class="value" id="out-nome">_______________________</span></div>
-            <div class="patient-field"><span class="label">Prontuário</span><span class="value" id="out-pront">__________</span></div>
-            <div class="patient-field"><span class="label">Data</span><span class="value" id="out-data">__/__/____</span></div>
-            <div class="patient-field"><span class="label">Médico(a)</span><span class="value" id="out-medico">_______________________</span></div>
+          <div class="print-info-grid">
+            <div class="print-field"><span class="print-field-label">PACIENTE</span><span class="print-field-value" id="out-nome">_______________________</span></div>
+            <div class="print-field"><span class="print-field-label">PRONTUÁRIO</span><span class="print-field-value" id="out-pront">__________</span></div>
+            <div class="print-field"><span class="print-field-label">DATA NASC.</span><span class="print-field-value" id="out-nasc">__/__/____</span></div>
+            <div class="print-field"><span class="print-field-label">IDADE</span><span class="print-field-value" id="out-idade">___ ANOS</span></div>
+            <div class="print-field"><span class="print-field-label">DATA CONSULTA</span><span class="print-field-value" id="out-data">__/__/____</span></div>
+            <div class="print-field"><span class="print-field-label">MÉDICO(A)</span><span class="print-field-value" id="out-medico">_______________________</span></div>
+            <div class="print-field col-span-2"><span class="print-field-label">SETOR / HOSPITAL</span><span class="print-field-value" id="out-setor">_______________________</span></div>
           </div>
         </div>
 
-        <div class="section-title">Como tomar seus medicamentos (Uso Contínuo)</div>
-        <table class="print-table">
+        <div style="background:var(--text-main); color:white; padding:8px; font-weight:900; text-align:center; text-transform:uppercase; border-radius:8px 8px 0 0;">COMO TOMAR SEUS MEDICAMENTOS (USO CONTÍNUO)</div>
+        <table class="recipe-table" id="tabela-fixos-preview">
           <thead id="thead-fixos"></thead>
           <tbody id="tbody-fixos"></tbody>
         </table>
 
-        <div id="container-tabela-sos" style="display: none; margin-top: 20px;" class="page-break">
-          <div class="section-title section-title--sos">SOS - Usar apenas se sentir incômodo</div>
-          <table class="print-table">
+        <div id="container-sos-preview" class="hidden" style="margin-top:20px;">
+          <div class="sos-section-header">🚨 SOS - USAR APENAS SE SENTIR INCÔMODO</div>
+          <table class="recipe-table" id="tabela-sos-preview">
             <tbody id="tbody-sos"></tbody>
           </table>
         </div>
 
-        <div class="footer-print page-break">
-          <p>Assistência Domiciliar - Farmácia: 3207-3971 | Emergência: 3207-3872 / 3207-3874</p>
-          <p style="margin-top: 12px;">Farmacêutico(a) Resp: <span id="out-farm" style="border-bottom: 1px solid #333; padding: 0 15px;">______________________________</span></p>
+        <div class="footer-print">
+          <p>ASSISTÊNCIA DOMICILIAR - FARMÁCIA: 3207-3971 | EMERGÊNCIA: 3207-3872 / 3207-3874</p>
+          <p style="margin-top:12px; font-weight:700;">FARMACÊUTICO(A) RESP: <span id="out-farm" style="border-bottom:1px solid #000; padding:0 20px;">______________________________</span></p>
         </div>
       </div>
     </div>
   </main>
 
   <script type="module">
-    import { db, COLLECTIONS, notificar, buscarPacientes, debounce, formatarDataBR } from './01-config.js';
-    import { collection, getDocs, doc, getDoc, setDoc, addDoc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { db, COLS, buscarPacientes, salvarDoc, fetchAll, getReceita, formatDate, calcularIdade, notificar, toUpperSafe } from './config.js';
+    import { ICONS } from './icons.js';
 
-    // ========== ESTADO DA APLICAÇÃO ==========
-    let bancoMedicamentos = [];
+    // ESTADO DA APLICAÇÃO
     let appFixos = [];
     let appSos = [];
     let contadorId = 1;
     let modoEdicao = false;
     let receitaIdAtual = null;
+    let listaMedicamentosDB = [];
+    let listaProfissionaisDB = [];
+    let listaSetoresDB = [];
 
-    const HORARIOS = [
-      { hora: "06:00", periodo: "manhã", icone: "☀️", label: "Café" },
-      { hora: "08:00", periodo: "manhã", icone: "🌅", label: "Manhã" },
-      { hora: "10:00", periodo: "manhã", icone: "⏰", label: "Lanche" },
-      { hora: "12:00", periodo: "tarde", icone: "🍽️", label: "Almoço" },
-      { hora: "14:00", periodo: "tarde", icone: "☕", label: "Tarde" },
-      { hora: "16:00", periodo: "tarde", icone: "🍎", label: "Lanche" },
-      { hora: "18:00", periodo: "noite", icone: "🌙", label: "Jantar" },
-      { hora: "22:00", periodo: "noite", icone: "🛌", label: "Dormir" },
-      { hora: "00:00", periodo: "noite", icone: "💤", label: "Madrugada" }
-    ];
-
-    // ========== INICIALIZAÇÃO ==========
+    // INICIALIZAÇÃO
     document.addEventListener('DOMContentLoaded', async () => {
-      if (window.lucide) lucide.createIcons();
-      document.getElementById('inp-data').valueAsDate = new Date();
+      document.getElementById('inp-data-consulta').valueAsDate = new Date();
       await carregarDadosBase();
       configurarBuscaPaciente();
       verificarModoEdicao();
+      sincronizarTela();
     });
 
     async function carregarDadosBase() {
       try {
-        const [medsSnap, profsSnap] = await Promise.all([
-          getDocs(collection(db, COLLECTIONS.MEDICAMENTOS)),
-          getDocs(collection(db, COLLECTIONS.PROFISSIONAIS))
+        [listaMedicamentosDB, listaProfissionaisDB, listaSetoresDB] = await Promise.all([
+          fetchAll(COLS.MEDICAMENTOS, 'nome'),
+          fetchAll(COLS.PROFISSIONAIS, 'nome'),
+          fetchAll(COLS.SETORES, 'nome')
         ]);
-        bancoMedicamentos = medsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        
+
         const selMed = document.getElementById('inp-medico');
-        const selFarm = document.getElementById('inp-farm');
-        selMed.innerHTML = '<option value="">Selecione o Médico(a)...</option>';
-        selFarm.innerHTML = '<option value="">Selecione o Farmacêutico(a)...</option>';
-        
-        profsSnap.forEach(docSnap => {
-          const p = docSnap.data();
-          const display = p.nome + (p.crm_crf ? ` (${p.crm_crf})` : '');
-          const opt = `<option value="${docSnap.id}">${display}</option>`;
-          if (p.cargo === "Médico(a)") selMed.innerHTML += opt;
-          else if (p.cargo === "Farmacêutico(a)") selFarm.innerHTML += opt;
+        const selSetor = document.getElementById('inp-setor');
+        selMed.innerHTML = '<option value="">SELECIONE O MÉDICO(A)...</option>';
+        selSetor.innerHTML = '<option value="">SELECIONE O SETOR/HOSPITAL...</option>';
+
+        listaProfissionaisDB.forEach(p => {
+          const txt = `${p.nome}${p.crm_crf ? ' (' + p.crm_crf + ')' : ''}`;
+          selMed.innerHTML += `<option value="${p.id}">${toUpperSafe(txt)}</option>`;
+        });
+
+        listaSetoresDB.forEach(s => {
+          selSetor.innerHTML += `<option value="${s.id}">${toUpperSafe(s.nome)}</option>`;
         });
 
         const status = document.getElementById('status-db');
-        status.innerHTML = '🟢 Conectado à Nuvem';
-        status.className = 'status-badge status-badge--success';
+        status.textContent = 'CONECTADO';
+        status.className = 'badge badge-success';
       } catch (e) {
         console.error(e);
-        document.getElementById('status-db').innerHTML = '🔴 Erro de Conexão';
-        document.getElementById('status-db').className = 'status-badge status-badge--error';
+        document.getElementById('status-db').textContent = 'ERRO DE CONEXÃO';
+        notificar('Falha ao carregar dados base', 'error');
       }
     }
 
     function configurarBuscaPaciente() {
-      const input = document.getElementById('inp-busca-paciente');
+      const input = document.getElementById('busca-paciente');
       const lista = document.getElementById('sugestoes-paciente');
       let timeout;
 
@@ -224,35 +193,70 @@
         timeout = setTimeout(async () => {
           const resultados = await buscarPacientes(termo);
           if (!resultados.length) {
-            lista.innerHTML = '<div class="suggestion-item text-muted">Nenhum paciente encontrado</div>';
+            lista.innerHTML = '<div class="text-center text-muted" style="padding:10px;">NENHUM PACIENTE ENCONTRADO</div>';
           } else {
             lista.innerHTML = resultados.map(p => `
-              <div class="suggestion-item" role="option" onclick="selecionarPaciente('${p.id}')">
-                <span class="suggestion-item__name">${p.nome}</span>
-                <span class="suggestion-item__pront">Pront: ${p.prontuario}</span>
-              </div>`).join('');
+              <div class="table-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" onclick="selecionarPaciente('${p.id}')">
+                <div class="font-bold">${toUpperSafe(p.nome)}</div>
+                <div class="text-muted" style="font-size:0.85rem;">PRONT: ${p.prontuario} | NASC: ${formatDate(p.data_nasc)}</div>
+              </div>
+            `).join('');
           }
           lista.style.display = 'block';
-          lista.setAttribute('aria-expanded', 'true');
         }, 300);
       });
 
       document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !lista.contains(e.target)) {
-          lista.style.display = 'none';
-          lista.setAttribute('aria-expanded', 'false');
-        }
+        if (!input.contains(e.target) && !lista.contains(e.target)) lista.style.display = 'none';
       });
     }
 
     window.selecionarPaciente = async (id) => {
-      const snap = await getDoc(doc(db, COLLECTIONS.PACIENTES, id));
-      if (!snap.exists()) return;
-      const p = snap.data();
-      document.getElementById('inp-pront').value = p.prontuario;
-      document.getElementById('inp-nome').value = p.nome;
-      document.getElementById('inp-busca-paciente').value = '';
+      const p = await db.doc(`${COLS.PACIENTES}/${id}`).get ? (await db.collection(COLS.PACIENTES).doc(id).get()) : null; 
+      // Ajuste para compatibilidade com SDK v10 modular usado no config.js
+      // Vamos buscar via getDoc manualmente ou confiar que fetchAll já pegou.
+      // Como buscarPacientes já retorna os dados completos, vamos usá-los diretamente se possível, 
+      // mas para garantir consistência, faremos uma chamada direta:
+      const snap = await db.collection(COLS.PACIENTES).doc(id).get(); // Fallback compatível
+      // Nota: O config.js exporta funções modulares. Vou usar a lógica direta do fetchAll que já temos em memória ou refazer a busca específica.
+      // Para simplificar e garantir funcionamento com o config.js fornecido, usarei os dados já filtrados:
+      const dados = await buscarPacientes(id); // Busca exata pelo ID se for numérico, ou nome.
+      // Melhor: refatorar brevemente para usar getDoc do config se necessário, mas vou manter simples:
+      // O config.js não exporta getDoc direto. Vou assumir que o fetchAll/buscarPacientes já traz os dados.
+      // Para garantir, vou buscar novamente via fetchAll com filtro ou usar o array local.
+      // Vou ajustar para usar o DB_UTILS global se necessário, mas o módulo já está limpo.
+      // Vamos usar a função nativa do Firestore já importada no config? Não, config encapsula.
+      // Solução: usar os dados já retornados pelo buscarPacientes que já foram filtrados.
+      const paciente = (await buscarPacientes(id)).find(p => p.id === id) || (await buscarPacientes(document.getElementById('busca-paciente').value)).find(p => p.id === id);
+      
+      if(paciente) {
+        document.getElementById('inp-prontuario').value = paciente.prontuario || '';
+        document.getElementById('inp-nome').value = paciente.nome || '';
+        document.getElementById('inp-nasc').value = paciente.data_nasc || '';
+        document.getElementById('busca-paciente').value = '';
+        document.getElementById('sugestoes-paciente').style.display = 'none';
+        atualizarIdade();
+        sincronizarTela();
+        await carregarReceitasAnteriores(paciente.prontuario);
+      }
+    };
+
+    // Correção segura para busca de paciente por ID usando o padrão do config
+    // Vamos injetar uma busca rápida direta via fetchAll com filtro de ID se necessário, 
+    // mas para não travar, usarei o dado já carregado ou farei fetch direto.
+    // Reescrevendo a função selecionarPaciente de forma robusta:
+    window.selecionarPaciente = async (id) => {
+      // Busca direta no Firestore via config (usando fetchAll e filtrando localmente para manter consistência)
+      const todos = await fetchAll(COLS.PACIENTES);
+      const p = todos.find(doc => doc.id === id);
+      if(!p) return;
+      
+      document.getElementById('inp-prontuario').value = p.prontuario || '';
+      document.getElementById('inp-nome').value = p.nome || '';
+      document.getElementById('inp-nasc').value = p.data_nasc || '';
+      document.getElementById('busca-paciente').value = '';
       document.getElementById('sugestoes-paciente').style.display = 'none';
+      atualizarIdade();
       sincronizarTela();
       await carregarReceitasAnteriores(p.prontuario);
     };
@@ -261,107 +265,109 @@
       const container = document.getElementById('container-receitas-antigas');
       const lista = document.getElementById('lista-receitas-antigas');
       try {
-        const q = query(collection(db, COLLECTIONS.RECEITAS), where("prontuario", "==", prontuario), orderBy("data_criacao", "desc"));
-        const snap = await getDocs(q);
-        if (snap.empty) {
-          lista.innerHTML = '<p class="text-muted">Nenhuma receita anterior encontrada.</p>';
-        } else {
-          lista.innerHTML = snap.docs.map(d => {
-            const r = d.data();
-            const data = r.data_criacao ? new Date(r.data_criacao).toLocaleDateString('pt-BR') : '-';
-            return `<div class="receita-anterior-item">
-              <div>
-                <strong>${data}</strong> | Médico: ${r.medico_id || 'N/I'}
-              </div>
-              <button class="btn btn--ghost btn--icon" onclick="editarReceita('${d.id}')" aria-label="Editar receita">
-                <i data-lucide="external-link" class="icon--sm"></i>
-              </button>
-            </div>`;
-          }).join('');
+        const snap = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
+        const filtradas = snap.filter(r => r.prontuario === prontuario);
+        if(filtradas.length === 0) {
+          container.classList.add('hidden');
+          return;
         }
-        container.style.display = 'block';
-        if (window.lucide) lucide.createIcons();
-      } catch (e) { console.error(e); }
+        container.classList.remove('hidden');
+        lista.innerHTML = filtradas.map(r => `
+          <div class="card" style="margin-bottom:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div class="font-bold">${formatDate(r.data_criacao)} - ${toUpperSafe(r.medico_id || 'MÉDICO NÃO INFORMADO')}</div>
+              <div class="text-muted" style="font-size:0.85rem;">FIXOS: ${r.medicamentos_fixos?.length || 0} | SOS: ${r.medicamentos_sos?.length || 0}</div>
+            </div>
+            <button class="btn btn-outline btn-icon" onclick="editarReceita('${r.id}')" aria-label="Editar receita">✏️</button>
+          </div>
+        `).join('');
+      } catch(e) { console.error(e); }
     }
+
+    window.atualizarIdade = () => {
+      const nasc = document.getElementById('inp-nasc').value;
+      document.getElementById('inp-idade').value = calcularIdade(nasc) || '';
+      sincronizarTela();
+    };
 
     function sincronizarTela() {
-      document.getElementById('out-nome').textContent = document.getElementById('inp-nome').value || '_______________________';
-      document.getElementById('out-pront').textContent = document.getElementById('inp-pront').value || '__________';
+      document.getElementById('out-nome').textContent = toUpperSafe(document.getElementById('inp-nome').value || '_______________________');
+      document.getElementById('out-pront').textContent = document.getElementById('inp-prontuario').value || '__________';
+      document.getElementById('out-nasc').textContent = formatDate(document.getElementById('inp-nasc').value);
+      document.getElementById('out-idade').textContent = document.getElementById('inp-idade').value || '___ ANOS';
+      document.getElementById('out-data').textContent = formatDate(document.getElementById('inp-data-consulta').value);
       
-      const medVal = document.getElementById('inp-medico').value;
-      const medText = medVal ? document.querySelector(`#inp-medico option[value="${medVal}"]`)?.text || '_______________________' : '_______________________';
-      document.getElementById('out-medico').textContent = medText;
+      const medId = document.getElementById('inp-medico').value;
+      const medOpt = document.querySelector(`#inp-medico option[value="${medId}"]`);
+      document.getElementById('out-medico').textContent = toUpperSafe(medOpt?.text || '_______________________');
 
-      const farmVal = document.getElementById('inp-farm').value;
-      const farmText = farmVal ? document.querySelector(`#inp-farm option[value="${farmVal}"]`)?.text || '______________________________' : '______________________________';
-      document.getElementById('out-farm').textContent = farmText;
+      const setId = document.getElementById('inp-setor').value;
+      const setOpt = document.querySelector(`#inp-setor option[value="${setId}"]`);
+      document.getElementById('out-setor').textContent = toUpperSafe(setOpt?.text || '_______________________');
 
-      const dataRaw = document.getElementById('inp-data').value;
-      document.getElementById('out-data').textContent = dataRaw ? formatarDataBR(new Date(dataRaw)) : '__/__/____';
-      renderizarReceita();
+      renderizarPreview();
     }
 
-    document.getElementById('inp-data').addEventListener('change', sincronizarTela);
+    document.getElementById('inp-data-consulta').addEventListener('change', sincronizarTela);
     document.getElementById('inp-medico').addEventListener('change', sincronizarTela);
-    document.getElementById('inp-farm').addEventListener('change', sincronizarTela);
+    document.getElementById('inp-setor').addEventListener('change', sincronizarTela);
 
-    // ========== MODO EDIÇÃO ==========
+    // MODO EDIÇÃO
     async function verificarModoEdicao() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get('receitaId');
-      if (id) await editarReceita(id);
+      if(id) await carregarReceitaParaEdicao(id);
     }
 
     window.editarReceita = async (id) => {
       window.location.href = `index.html?receitaId=${id}`;
     };
 
-    // Carrega dados quando a URL tem ?receitaId
-    if (new URLSearchParams(window.location.search).get('receitaId')) {
-      const receitaId = new URLSearchParams(window.location.search).get('receitaId');
-      const snap = await getDoc(doc(db, COLLECTIONS.RECEITAS, receitaId));
-      if (snap.exists()) {
-        const r = snap.data();
-        modoEdicao = true;
-        receitaIdAtual = receitaId;
-        document.getElementById('inp-pront').value = r.prontuario || '';
-        document.getElementById('inp-nome').value = r.paciente_nome || '';
-        document.getElementById('inp-data').value = r.data_consulta || new Date().toISOString().split('T')[0];
-        document.getElementById('inp-medico').value = r.medico_id || '';
-        document.getElementById('inp-farm').value = r.farmaceutico_id || '';
-        appFixos = r.medicamentos_fixos || [];
-        appSos = r.medicamentos_sos || [];
-        contadorId = Math.max(0, ...appFixos.map(m=>m.id), ...appSos.map(m=>m.id)) + 1;
-        renderizarListaMed('fixo');
-        renderizarListaMed('sos');
-        document.getElementById('btn-salvar').innerHTML = '<i data-lucide="save" class="icon--sm"></i> Atualizar Receita';
-        sincronizarTela();
-      }
+    async function carregarReceitaParaEdicao(id) {
+      const rec = await getReceita(id);
+      if(!rec) return notificar('Receita não encontrada', 'error');
+      
+      modoEdicao = true;
+      receitaIdAtual = id;
+      
+      document.getElementById('inp-prontuario').value = rec.prontuario || '';
+      document.getElementById('inp-nome').value = rec.paciente_nome || '';
+      document.getElementById('inp-nasc').value = rec.data_nasc || '';
+      document.getElementById('inp-data-consulta').value = rec.data_consulta || new Date().toISOString().split('T')[0];
+      document.getElementById('inp-medico').value = rec.medico_id || '';
+      document.getElementById('inp-setor').value = rec.setor_id || '';
+      
+      appFixos = rec.medicamentos_fixos || [];
+      appSos = rec.medicamentos_sos || [];
+      contadorId = Math.max(0, ...appFixos.map(m=>m.id), ...appSos.map(m=>m.id)) + 1;
+      
+      atualizarIdade();
+      renderizarListaMed('fixo');
+      renderizarListaMed('sos');
+      sincronizarTela();
+      document.getElementById('btn-salvar').innerHTML = '💾 ATUALIZAR RECEITA';
     }
 
     window.novaReceita = () => {
       appFixos = []; appSos = [];
       contadorId = 1;
-      modoEdicao = false;
-      receitaIdAtual = null;
-      renderizarListaMed('fixo');
-      renderizarListaMed('sos');
+      modoEdicao = false; receitaIdAtual = null;
+      renderizarListaMed('fixo'); renderizarListaMed('sos');
       sincronizarTela();
-      document.getElementById('btn-salvar').innerHTML = '<i data-lucide="save" class="icon--sm"></i> Salvar no Histórico';
+      document.getElementById('btn-salvar').innerHTML = '💾 SALVAR NO HISTÓRICO';
     };
 
-    // ========== GERENCIAMENTO DE MEDICAMENTOS ==========
+    // GERENCIAMENTO DE MEDICAMENTOS
     window.addMed = (tipo) => {
       const id = contadorId++;
-      const item = { id, nome: '', apre: 'comprimido', dose: '1', ind: '', horarios: {}, instrucoes: '', sintoma: '' };
-      if (tipo === 'fixo') appFixos.push(item);
-      else appSos.push(item);
+      const item = { id, nome:'', apresentacao:'comprimido', dose:'1', indicacao:'', horarios:{}, sintoma:'', instrucoes:'' };
+      if(tipo === 'fixo') appFixos.push(item); else appSos.push(item);
       renderizarListaMed(tipo);
       sincronizarTela();
     };
 
     window.removeMed = (id, tipo) => {
-      if (tipo === 'fixo') appFixos = appFixos.filter(m => m.id !== id);
+      if(tipo === 'fixo') appFixos = appFixos.filter(m => m.id !== id);
       else appSos = appSos.filter(m => m.id !== id);
       renderizarListaMed(tipo);
       sincronizarTela();
@@ -370,224 +376,221 @@
     function renderizarListaMed(tipo) {
       const lista = tipo === 'fixo' ? appFixos : appSos;
       const container = document.getElementById(`lista-${tipo}`);
-      const msgVazio = document.getElementById(`msg-vazio-${tipo}`);
-      
-      if (!lista.length) {
-        container.innerHTML = '';
-        msgVazio.style.display = 'block';
-        return;
-      }
-      msgVazio.style.display = 'none';
-      container.innerHTML = lista.map(item => criarCardMed(item, tipo)).join('');
-      
-      // Bind events after DOM update
-      setTimeout(() => {
-        lista.forEach(item => {
-          const sel = document.getElementById(`sel-med-${item.id}`);
-          if (sel) sel.addEventListener('change', e => escolherMedicamento(item.id, tipo, e.target.value));
-          HORARIOS.forEach(h => {
-            const btn = document.getElementById(`btn-hora-${item.id}-${h.hora.replace(':','')}`);
-            if (btn) btn.addEventListener('click', () => marcarHorario(item.id, h.hora));
-          });
-        });
-        if (window.lucide) lucide.createIcons();
-      }, 0);
+      const msg = document.getElementById(`msg-vazio-${tipo}`);
+      container.innerHTML = '';
+      msg.classList.toggle('hidden', lista.length > 0);
+
+      lista.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `card ${tipo === 'sos' ? 'sos-card' : ''}`;
+        card.innerHTML = criarHTMLMedCard(item, tipo);
+        container.appendChild(card);
+        bindCardEvents(item.id, tipo);
+      });
     }
 
-    function criarCardMed(item, tipo) {
+    function criarHTMLMedCard(item, tipo) {
       const isSos = tipo === 'sos';
-      const opts = bancoMedicamentos.map(m => `<option value="${m.nome}" ${item.nome === m.nome ? 'selected' : ''}>${m.nome}</option>`).join('');
-      const sintomas = ['Dor', 'Febre', 'Náusea', 'Vômito', 'Cólica'];
+      const medOpts = listaMedicamentosDB.map(m => `<option value="${m.nome}" ${item.nome === m.nome ? 'selected' : ''}>${toUpperSafe(m.nome)}</option>`).join('');
       
+      // Gerador de Grid Visual
+      const gerarGrid = (dados, campo, atual, onClickFn) => {
+        return `<div class="visual-aid-grid">` + Object.entries(dados).map(([key, val]) => `
+          <button type="button" class="aid-btn ${atual === key || atual[key] ? 'active' : ''}" data-val="${key}" onclick="${onClickFn}('${item.id}', '${tipo}', '${campo}', '${key}')">
+            <span>${val.icone}</span>
+            <span style="font-size:0.7rem; font-weight:700;">${toUpperSafe(val.label)}</span>
+          </button>
+        `).join('') + `</div>`;
+      };
+
       return `
-      <div class="card med-card ${isSos ? 'med-card--sos' : ''}">
-        <button class="btn btn--ghost btn--icon" style="position:absolute; top:10px; right:10px;" onclick="removeMed(${item.id}, '${tipo}')" aria-label="Remover medicamento">
-          <i data-lucide="x" class="icon--sm" style="color:var(--color-danger)"></i>
-        </button>
-        <div class="form-grid">
-          <div class="col-span-2">
-            <label class="form-label form-label--required">Medicamento</label>
-            <select id="sel-med-${item.id}" class="form-select">
-              <option value="">Selecione...</option>
-              ${opts}
-              <option value="OUTRO" ${item.nome && !bancoMedicamentos.some(m=>m.nome===item.nome) ? 'selected' : ''}>✍️ Digitar manual</option>
-            </select>
-            <input type="text" id="manual-${item.id}" class="form-input mt-sm" placeholder="Nome do medicamento" 
-              value="${item.nome}" 
-              style="display:${item.nome && !bancoMedicamentos.some(m=>m.nome===item.nome) ? 'block' : 'none'};" 
-              oninput="atualizarCampo(${item.id}, '${tipo}', 'nome', this.value)">
+        <div style="position:relative;">
+          <button class="btn btn-danger btn-icon" style="position:absolute; top:10px; right:10px; padding:6px;" onclick="removeMed(${item.id}, '${tipo}')">✕</button>
+          <div class="form-grid">
+            <div class="col-span-2">
+              <label class="form-label">MEDICAMENTO</label>
+              <select class="form-select" onchange="atualizarCampo(${item.id}, '${tipo}', 'nome', this.value)">
+                <option value="">SELECIONE OU DIGITE...</option>
+                ${medOpts}
+                <option value="OUTRO" ${item.nome && !listaMedicamentosDB.some(m=>m.nome===item.nome) ? 'selected' : ''}>✍️ DIGITAR MANUAL</option>
+              </select>
+              <input type="text" class="form-input" style="margin-top:8px; display:${item.nome && !listaMedicamentosDB.some(m=>m.nome===item.nome) ? 'block' : 'none'};" 
+                value="${toUpperSafe(item.nome)}" oninput="atualizarCampo(${item.id}, '${tipo}', 'nome', this.value)" placeholder="NOME DO MEDICAMENTO">
+            </div>
+            <div>
+              <label class="form-label">APRESENTAÇÃO</label>
+              ${gerarGrid(ICONS.apresentacoes, 'apresentacao', item.apresentacao, 'atualizarCampo')}
+            </div>
+            <div>
+              <label class="form-label">DOSE</label>
+              <input type="text" class="form-input" value="${item.dose}" oninput="atualizarCampo(${item.id}, '${tipo}', 'dose', this.value)">
+            </div>
           </div>
-          <div>
-            <label class="form-label">Apresentação</label>
-            <select class="form-select" onchange="atualizarCampo(${item.id}, '${tipo}', 'apre', this.value)">
-              <option value="comprimido" ${item.apre==='comprimido'?'selected':''}>💊 Comprimido</option>
-              <option value="meio_comprimido" ${item.apre==='meio_comprimido'?'selected':''}>✂️ Meio comp.</option>
-              <option value="gotas" ${item.apre==='gotas'?'selected':''}>💧 Gotas</option>
-              <option value="liquido" ${item.apre==='liquido'?'selected':''}>🥄 Líquido</option>
-            </select>
+          
+          <div style="margin-top:12px;">
+            <label class="form-label">${isSos ? '🚨 SINTOMA ALVO' : '📋 PARA QUE SERVE?'}</label>
+            ${isSos ? gerarGrid(ICONS.sintomas, 'sintoma', item.sintoma, 'atualizarCampo') : 
+              `<input type="text" class="form-input" value="${toUpperSafe(item.indicacao)}" oninput="atualizarCampo(${item.id}, '${tipo}', 'indicacao', this.value)" placeholder="EX: PARA DOR">`}
           </div>
-          <div>
-            <label class="form-label">Dose</label>
-            <input type="text" class="form-input" value="${item.dose}" oninput="atualizarCampo(${item.id}, '${tipo}', 'dose', this.value)">
-          </div>
+
+          ${!isSos ? `
+          <div style="margin-top:12px;">
+            <label class="form-label">⏰ HORÁRIOS DE USO</label>
+            ${gerarGrid(ICONS.horarios, 'horarios', item.horarios, 'toggleHorario')}
+          </div>` : `
+          <div style="margin-top:12px;">
+            <label class="form-label">📝 INSTRUÇÕES VISUAIS</label>
+            <textarea class="form-textarea" rows="2" oninput="atualizarCampo(${item.id}, '${tipo}', 'instrucoes', this.value)">${toUpperSafe(item.instrucoes)}</textarea>
+          </div>`}
         </div>
-        <div class="mt-md">
-          <label class="form-label">📋 Para que serve?</label>
-          <input type="text" class="form-input" value="${item.ind}" oninput="atualizarCampo(${item.id}, '${tipo}', 'ind', this.value)">
-        </div>
-        ${!isSos ? `
-        <div class="mt-md">
-          <label class="form-label">⏰ Horários</label>
-          <div class="horarios-grid">
-            ${HORARIOS.map(h => `
-              <button type="button" id="btn-hora-${item.id}-${h.hora.replace(':','')}" class="horario-btn" aria-pressed="${item.horarios[h.hora] ? 'true' : 'false'}">
-                <span class="horario-btn__icone">${h.icone}</span>
-                <span class="horario-btn__hora">${h.hora}</span>
-                <small class="horario-btn__label">${h.label}</small>
-              </button>
-            `).join('')}
-          </div>
-        </div>` : `
-        <div class="mt-md">
-          <label class="form-label">🚑 Sintoma alvo</label>
-          <select class="form-select" onchange="atualizarCampo(${item.id}, '${tipo}', 'sintoma', this.value)">
-            <option value="">Selecione...</option>
-            ${sintomas.map(s => `<option value="${s}" ${item.sintoma===s?'selected':''}>${s}</option>`).join('')}
-          </select>
-          <div class="mt-sm">
-            <label class="form-label">📝 Instruções</label>
-            <textarea class="form-textarea" rows="2" oninput="atualizarCampo(${item.id}, '${tipo}', 'instrucoes', this.value)">${item.instrucoes || ''}</textarea>
-          </div>
-        </div>`}
-      </div>`;
+      `;
+    }
+
+    function bindCardEvents(id, tipo) {
+      // Eventos já estão inline no HTML para simplicidade e performance
     }
 
     window.atualizarCampo = (id, tipo, campo, valor) => {
       const lista = tipo === 'fixo' ? appFixos : appSos;
       const item = lista.find(m => m.id === id);
-      if (item) item[campo] = valor;
+      if(!item) return;
+      
+      if(campo === 'nome') {
+        item.nome = toUpperSafe(valor);
+        const manualInput = document.querySelector(`#lista-${tipo} input[oninput*="nome"]`);
+        if(valor === 'OUTRO' && manualInput) manualInput.style.display = 'block';
+        else if(manualInput) manualInput.style.display = 'none';
+      } else if (campo === 'horarios') {
+        // Tratado separadamente
+      } else {
+        item[campo] = toUpperSafe(valor);
+      }
       sincronizarTela();
+      if(campo !== 'nome') renderizarListaMed(tipo); // Re-renderiza para atualizar botões ativos
     };
 
-    window.escolherMedicamento = (id, tipo, valor) => {
+    window.toggleHorario = (id, tipo, campo, hora) => {
       const lista = tipo === 'fixo' ? appFixos : appSos;
       const item = lista.find(m => m.id === id);
-      const manual = document.getElementById(`manual-${id}`);
-      if (valor === 'OUTRO') {
-        item.nome = '';
-        manual.style.display = 'block';
-        manual.focus();
-      } else {
-        item.nome = valor;
-        manual.style.display = 'none';
-        const info = bancoMedicamentos.find(m => m.nome === valor);
-        if (info) { item.apre = info.apresentacao; item.dose = info.dosePadrao; item.ind = info.indicacao; }
-      }
-      renderizarListaMed(tipo);
-      sincronizarTela();
-    };
-
-    window.marcarHorario = (id, hora) => {
-      const item = appFixos.find(m => m.id === id);
-      if (!item) return;
+      if(!item) return;
       item.horarios[hora] = !item.horarios[hora];
-      const btn = document.getElementById(`btn-hora-${id}-${hora.replace(':','')}`);
-      if (btn) btn.setAttribute('aria-pressed', item.horarios[hora] ? 'true' : 'false');
       renderizarListaMed('fixo');
       sincronizarTela();
     };
 
-    // ========== RENDERIZAÇÃO DA RECEITA (PREVIEW) ==========
-    window.renderizarReceita = () => {
-      // Header
-      let th = '<tr><th style="text-align:left; padding-left:12px; width:35%;">Medicamento</th>';
-      HORARIOS.forEach(h => th += `<th style="background:${h.periodo==='manhã'?'#fef3c7':(h.periodo==='tarde'?'#fde68a':'#e0e7ff')}; font-size:9pt;">${h.icone} ${h.hora}</th>`);
+    // RENDERIZAÇÃO DA RECEITA (PREVIEW A4)
+    function renderizarPreview() {
+      // Cabeçalho Tabela Fixos
+      let th = '<tr><th style="width:30%; text-align:left; padding-left:15px;">MEDICAMENTO</th>';
+      Object.entries(ICONS.horarios).forEach(([h, d]) => th += `<th style="background:${d.cor}20; color:${d.cor};">${d.icone} ${h}</th>`);
       document.getElementById('thead-fixos').innerHTML = th + '</tr>';
 
-      // Fixos
+      // Corpo Fixos
       const tbodyF = document.getElementById('tbody-fixos');
-      if (!appFixos.length) {
-        tbodyF.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Nenhum medicamento fixo prescrito</td></tr>';
+      if(appFixos.length === 0) {
+        tbodyF.innerHTML = '<tr><td colspan="10" class="text-center text-muted">NENHUM MEDICAMENTO FIXO PRESCRITO</td></tr>';
       } else {
         tbodyF.innerHTML = appFixos.map(item => {
-          const rows = `<tr>
-            <td class="med-name"><div class="med-title">${item.nome || '-'}</div>${item.ind ? `<div class="med-ind">${item.ind}</div>` : ''}</td>
-            ${HORARIOS.map(h => item.horarios[h.hora] ? 
-              `<td><div class="dose-box">${item.apre==='comprimido'?'💊':(item.apre==='meio_comprimido'?'✂️':(item.apre==='gotas'?'💧':'🥄'))} ${item.dose}</div></td>` : 
-              `<td>—</td>`
-            ).join('')}
-          </tr>`;
-          return rows;
+          const apres = ICONS.apresentacoes[item.apresentacao] || ICONS.apresentacoes['comprimido'];
+          let row = `<tr><td class="cell-med-name">
+            <div class="med-name-title">${toUpperSafe(item.nome || '-')}</div>
+            <div class="med-name-ind">${toUpperSafe(item.indicacao || '')}</div>
+          </td>`;
+          
+          Object.keys(ICONS.horarios).forEach(h => {
+            if(item.horarios[h]) {
+              row += `<td class="dose-cell">
+                <span class="dose-icon">${apres.icone}</span>
+                <span class="dose-text">${toUpperSafe(item.dose)}</span>
+              </td>`;
+            } else {
+              row += `<td style="color:#cbd5e1;">—</td>`;
+            }
+          });
+          return row + '</tr>';
         }).join('');
       }
 
       // SOS
-      const containerSos = document.getElementById('container-tabela-sos');
+      const containerSos = document.getElementById('container-sos-preview');
       const tbodyS = document.getElementById('tbody-sos');
-      if (!appSos.length) {
-        containerSos.style.display = 'none';
+      if(appSos.length === 0) {
+        containerSos.classList.add('hidden');
       } else {
-        containerSos.style.display = 'block';
+        containerSos.classList.remove('hidden');
         tbodyS.innerHTML = appSos.map(item => {
-          const iconeS = item.sintoma === 'Dor' ? '🤕' : (item.sintoma === 'Febre' ? '🌡️' : (item.sintoma === 'Náusea' ? '🤢' : (item.sintoma === 'Vômito' ? '🤮' : (item.sintoma === 'Cólica' ? '😖' : '💊'))));
-          return `<tr>
-            <td class="med-name"><div class="med-title">${item.nome || '-'} ${iconeS}</div>
-            <div class="dose-box" style="margin-top:6px;">${item.dose} ${item.apre}</div></td>
-            <td>${item.ind ? `<div class="med-ind mb-sm">${item.ind}</div>` : ''}
-            <strong style="font-size:9pt;">${item.instrucoes || '-'}</strong></td>
+          const sintoma = ICONS.sintomas[item.sintoma] || {icone:'💊', label:'USO'};
+          const apres = ICONS.apresentacoes[item.apresentacao] || ICONS.apresentacoes['comprimido'];
+          return `<tr class="sos-row">
+            <td class="cell-med-name">
+              <div class="med-name-title" style="color:var(--warning);">${toUpperSafe(item.nome || '-')}</div>
+              <div style="margin-top:8px; display:flex; align-items:center; gap:8px; font-weight:700;">
+                <span style="font-size:1.5rem;">${sintoma.icone}</span>
+                <span style="background:#fef3c7; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:900;">${toUpperSafe(sintoma.label)}</span>
+              </div>
+              <div style="margin-top:8px; display:inline-flex; align-items:center; gap:6px; background:#fffbeb; padding:6px; border-radius:6px; border:1px solid #fcd34d;">
+                <span style="font-size:1.4rem;">${apres.icone}</span>
+                <span style="font-weight:900; color:#d97706;">${toUpperSafe(item.dose)}</span>
+              </div>
+            </td>
+            <td style="text-align:left; padding:15px; vertical-align:middle;">
+              <div style="font-weight:700; margin-bottom:6px;">📝 ${toUpperSafe(item.instrucoes || 'SEGUIR ORIENTAÇÃO')}</div>
+            </td>
           </tr>`;
         }).join('');
       }
-    };
+    }
 
-    // ========== SALVAR / ATUALIZAR ==========
+    // SALVAR / ATUALIZAR
     window.salvarReceita = async () => {
-      const pront = document.getElementById('inp-pront').value.trim();
+      const pront = document.getElementById('inp-prontuario').value.trim();
       const nome = document.getElementById('inp-nome').value.trim();
       const medico = document.getElementById('inp-medico').value;
       
-      if (!pront || !nome || !medico) {
-        return notificar('Preencha prontuário, nome e médico!', 'error');
-      }
+      if(!pront || !nome || !medico) return notificar('PREENCHA PRONTUÁRIO, NOME E MÉDICO!', 'error');
 
       const btn = document.getElementById('btn-salvar');
       btn.disabled = true;
-      btn.innerHTML = '<span class="skeleton" style="width:120px;height:36px;border-radius:6px;"></span>';
+      btn.innerHTML = '⏳ SALVANDO...';
 
       const payload = {
         prontuario: pront,
-        paciente_nome: nome,
+        paciente_nome: toUpperSafe(nome),
+        data_nasc: document.getElementById('inp-nasc').value,
         medico_id: medico,
-        farmaceutico_id: document.getElementById('inp-farm').value,
-        data_consulta: document.getElementById('inp-data').value,
+        setor_id: document.getElementById('inp-setor').value,
+        data_consulta: document.getElementById('inp-data-consulta').value,
         medicamentos_fixos: appFixos,
         medicamentos_sos: appSos,
         data_atualizacao: new Date().toISOString()
       };
 
       try {
-        // Atualiza/cadastra paciente automaticamente
-        await setDoc(doc(db, COLLECTIONS.PACIENTES, pront), { nome, prontuario: pront }, { merge: true });
+        // Salva/Atualiza paciente automaticamente
+        await salvarDoc(COLS.PACIENTES, pront, { 
+          nome: toUpperSafe(nome), 
+          prontuario: pront, 
+          data_nasc: payload.data_nasc 
+        });
 
-        if (modoEdicao && receitaIdAtual) {
-          await updateDoc(doc(db, COLLECTIONS.RECEITAS, receitaIdAtual), payload);
-          notificar('✅ Receita atualizada com sucesso!', 'success');
+        if(modoEdicao && receitaIdAtual) {
+          await salvarDoc(COLS.RECEITAS, receitaIdAtual, payload);
+          notificar('✅ RECEITA ATUALIZADA COM SUCESSO!', 'success');
         } else {
           payload.data_criacao = new Date().toISOString();
-          await addDoc(collection(db, COLLECTIONS.RECEITAS), payload);
-          notificar('✅ Receita salva no histórico!', 'success');
+          await salvarDoc(COLS.RECEITAS, 'NOVO', payload);
+          notificar('✅ RECEITA SALVA NO HISTÓRICO!', 'success');
         }
         
         setTimeout(() => {
           btn.disabled = false;
-          btn.innerHTML = modoEdicao ? '<i data-lucide="save" class="icon--sm"></i> Atualizar Receita' : '<i data-lucide="save" class="icon--sm"></i> Salvar no Histórico';
-          if (window.lucide) lucide.createIcons();
+          btn.innerHTML = modoEdicao ? '💾 ATUALIZAR RECEITA' : '💾 SALVAR NO HISTÓRICO';
         }, 1500);
-      } catch (e) {
+      } catch(e) {
         console.error(e);
-        notificar('❌ Erro ao salvar: ' + e.message, 'error');
+        notificar('❌ ERRO AO SALVAR: ' + e.message, 'error');
         btn.disabled = false;
-        btn.innerHTML = modoEdicao ? '💾 Atualizar Receita' : '💾 Salvar';
+        btn.innerHTML = modoEdicao ? '💾 ATUALIZAR RECEITA' : '💾 SALVAR';
       }
     };
   </script>
