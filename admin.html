@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo · HC IV</title>
+    <title>Painel Administrativo · HC IV (Completo)</title>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --blue-600: #2563eb; --blue-800: #1e40af; --blue-50: #eff6ff;
@@ -15,17 +17,15 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
         body { background-color: var(--slate-100); }
-        
         .header { background: var(--slate-800); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .header h1 { font-size: 22px; display: flex; align-items: center; gap: 10px; }
         .btn-voltar { background: var(--slate-600); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
         .btn-voltar:hover { background: var(--slate-500); }
-        
-        .container { max-width: 1300px; margin: 30px auto; padding: 0 20px; }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
         
         /* Tabs */
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--slate-200); }
-        .tab-btn { padding: 12px 24px; border: none; background: transparent; color: var(--slate-600); font-weight: 600; font-size: 16px; cursor: pointer; border-radius: 12px 12px 0 0; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--slate-200); flex-wrap: wrap; }
+        .tab-btn { padding: 12px 20px; border: none; background: transparent; color: var(--slate-600); font-weight: 600; font-size: 15px; cursor: pointer; border-radius: 12px 12px 0 0; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .tab-btn:hover { background: var(--slate-100); color: var(--slate-800); }
         .tab-btn.active { background: white; color: var(--blue-600); box-shadow: 0 -2px 4px rgba(0,0,0,0.05); }
         
@@ -38,11 +38,11 @@
         .search-box { display: flex; gap: 10px; }
         .search-box input { padding: 10px 15px; border: 1px solid var(--slate-300); border-radius: 30px; width: 250px; }
         
-        .btn { padding: 10px 18px; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; font-size: 14px; }
-        .btn-primary { background: var(--blue-600); color: white; } .btn-primary:hover { background: var(--blue-800); }
-        .btn-success { background: var(--emerald-500); color: white; } .btn-success:hover { background: var(--emerald-600); }
-        .btn-outline { background: white; border: 1px solid var(--slate-300); color: var(--slate-700); } .btn-outline:hover { background: var(--slate-50); }
-        .btn-danger { background: var(--red-500); color: white; } .btn-danger:hover { background: var(--red-600); }
+        .btn { padding: 10px 18px; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; font-size: 14px; background: white; border: 1px solid var(--slate-300); color: var(--slate-700); }
+        .btn-primary { background: var(--blue-600); color: white; border: none; } .btn-primary:hover { background: var(--blue-800); }
+        .btn-success { background: var(--emerald-500); color: white; border: none; } .btn-success:hover { background: var(--emerald-600); }
+        .btn-danger { background: var(--red-500); color: white; border: none; } .btn-danger:hover { background: var(--red-600); }
+        .btn-outline { background: white; border: 1px solid var(--slate-300); } .btn-outline:hover { background: var(--slate-50); }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; padding: 14px 12px; background: var(--slate-50); color: var(--slate-700); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--slate-200); }
@@ -50,13 +50,19 @@
         tr:last-child td { border-bottom: none; }
         
         .badge { background: var(--slate-200); color: var(--slate-700); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .actions { display: flex; gap: 8px; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .icon-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 6px; border-radius: 8px; color: var(--slate-600); }
         .icon-btn:hover { background: var(--slate-100); color: var(--slate-800); }
         
+        /* Dashboard cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 1px solid var(--slate-200); }
+        .stat-value { font-size: 36px; font-weight: 700; color: var(--slate-800); }
+        .stat-label { color: var(--slate-500); font-size: 14px; margin-top: 5px; }
+        
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background: white; border-radius: 20px; padding: 28px; width: 100%; max-width: 520px; box-shadow: 0 20px 30px rgba(0,0,0,0.2); }
+        .modal { background: white; border-radius: 20px; padding: 28px; width: 100%; max-width: 600px; box-shadow: 0 20px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .modal h2 { margin-bottom: 20px; color: var(--slate-800); }
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--slate-600); margin-bottom: 6px; }
@@ -64,12 +70,14 @@
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--blue-600); background: white; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
         
-        /* Confirmation dialog customizado */
+        /* Lixeira */
+        .lixeira-badge { background: var(--orange-500); color: white; padding: 2px 8px; border-radius: 20px; font-size: 11px; margin-left: 8px; }
+        
+        /* Confirm dialog */
         .confirm-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 20px; box-shadow: 0 20px 30px rgba(0,0,0,0.2); z-index: 1100; max-width: 400px; width: 90%; display: none; }
         .confirm-dialog p { margin-bottom: 20px; font-size: 16px; }
         .confirm-actions { display: flex; justify-content: flex-end; gap: 12px; }
         
-        /* Responsividade */
         @media (max-width: 700px) {
             .panel-header { flex-direction: column; align-items: flex-start; }
             .search-box { width: 100%; } .search-box input { flex: 1; }
@@ -86,62 +94,100 @@
 
 <div class="container">
     <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('meds')"><span>💊</span> Medicamentos</button>
+        <button class="tab-btn active" onclick="showTab('dashboard')"><span>📊</span> Dashboard</button>
+        <button class="tab-btn" onclick="showTab('meds')"><span>💊</span> Medicamentos</button>
         <button class="tab-btn" onclick="showTab('profs')"><span>👨‍⚕️</span> Profissionais</button>
         <button class="tab-btn" onclick="showTab('pacs')"><span>🏥</span> Pacientes</button>
+        <button class="tab-btn" onclick="showTab('receitas')"><span>📋</span> Receitas</button>
+        <button class="tab-btn" onclick="showTab('lixeira')"><span>🗑️</span> Lixeira</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard" class="panel active">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="stat-receitas">0</div><div class="stat-label">Receitas emitidas</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-pacientes">0</div><div class="stat-label">Pacientes cadastrados</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-meds">0</div><div class="stat-label">Medicamentos padrão</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-profs">0</div><div class="stat-label">Profissionais</div></div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--slate-200);">
+            <h3 style="margin-bottom: 15px;">Receitas nos últimos 7 dias</h3>
+            <canvas id="chart-receitas" width="400" height="200"></canvas>
+        </div>
     </div>
 
     <!-- PAINEL MEDICAMENTOS -->
-    <div id="panel-meds" class="panel active">
+    <div id="panel-meds" class="panel">
         <div class="panel-header">
             <h2>Medicamentos Padrão</h2>
             <div style="display: flex; gap: 10px;">
-                <div class="search-box">
-                    <input type="text" id="busca-med" placeholder="🔍 Buscar medicamento..." oninput="filtrarMeds()">
-                </div>
-                <button class="btn btn-success" onclick="abrirModalMed()">➕ Novo Medicamento</button>
+                <div class="search-box"><input type="text" id="busca-med" placeholder="🔍 Buscar..." oninput="filtrarMeds()"></div>
+                <button class="btn btn-success" onclick="abrirModalMed()">➕ Novo</button>
+                <button class="btn btn-outline" onclick="exportarCSV('medicamentos')">📥 Exportar CSV</button>
             </div>
         </div>
-        <table>
-            <thead>
-                <tr><th>Medicamento</th><th>Apresentação</th><th>Dose Padrão</th><th>Indicação</th><th style="width:120px;">Ações</th></tr>
-            </thead>
-            <tbody id="tabela-meds"><tr><td colspan="5">Carregando...</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>Medicamento</th><th>Apresentação</th><th>Dose</th><th>Indicação</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-meds"></tbody></table>
     </div>
 
     <!-- PAINEL PROFISSIONAIS -->
     <div id="panel-profs" class="panel">
         <div class="panel-header">
-            <h2>Médicos e Farmacêuticos</h2>
-            <button class="btn btn-success" onclick="abrirModalProf()">➕ Novo Profissional</button>
+            <h2>Profissionais</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="abrirModalProf()">➕ Novo</button>
+                <button class="btn btn-outline" onclick="exportarCSV('profissionais')">📥 Exportar CSV</button>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr><th>Nome</th><th>Registro (CRM/CRF)</th><th>Cargo</th><th style="width:120px;">Ações</th></tr>
-            </thead>
-            <tbody id="tabela-profs"><tr><td colspan="4">Carregando...</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>Nome</th><th>Registro</th><th>Cargo</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-profs"></tbody></table>
     </div>
 
     <!-- PAINEL PACIENTES -->
     <div id="panel-pacs" class="panel">
         <div class="panel-header">
-            <h2>Pacientes Cadastrados</h2>
-            <div class="search-box">
-                <input type="text" id="busca-pac" placeholder="🔍 Buscar por nome ou prontuário..." oninput="filtrarPacs()">
+            <h2>Pacientes</h2>
+            <div style="display: flex; gap: 10px;">
+                <div class="search-box"><input type="text" id="busca-pac" placeholder="🔍 Buscar..." oninput="filtrarPacs()"></div>
+                <button class="btn btn-outline" onclick="exportarCSV('pacientes')">📥 Exportar CSV</button>
             </div>
         </div>
-        <table>
-            <thead>
-                <tr><th>Prontuário</th><th>Nome do Paciente</th><th style="width:150px;">Ações</th></tr>
-            </thead>
-            <tbody id="tabela-pacs"><tr><td colspan="3">Carregando...</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>Prontuário</th><th>Nome</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-pacs"></tbody></table>
+    </div>
+
+    <!-- PAINEL RECEITAS -->
+    <div id="panel-receitas" class="panel">
+        <div class="panel-header">
+            <h2>Histórico de Receitas</h2>
+            <div style="display: flex; gap: 10px;">
+                <div class="search-box"><input type="text" id="busca-receita" placeholder="🔍 Paciente ou prontuário..." oninput="filtrarReceitas()"></div>
+                <button class="btn btn-outline" onclick="exportarCSV('receitas')">📥 Exportar CSV</button>
+            </div>
+        </div>
+        <table><thead><tr><th>Data</th><th>Paciente</th><th>Prontuário</th><th>Médico</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-receitas"></tbody></table>
+    </div>
+
+    <!-- PAINEL LIXEIRA -->
+    <div id="panel-lixeira" class="panel">
+        <div class="panel-header">
+            <h2>Registros na Lixeira</h2>
+            <div>
+                <select id="lixeira-tipo" onchange="carregarLixeira()" class="btn-outline" style="padding:8px; border-radius:20px;">
+                    <option value="medicamentos">Medicamentos</option>
+                    <option value="profissionais">Profissionais</option>
+                    <option value="pacientes">Pacientes</option>
+                    <option value="receitas">Receitas</option>
+                </select>
+            </div>
+        </div>
+        <div id="lixeira-conteudo"></div>
     </div>
 </div>
 
-<!-- MODAL DE MEDICAMENTO -->
+<!-- MODAIS -->
+<!-- Modal Medicamento -->
 <div id="modal-med" class="modal-overlay">
     <div class="modal">
         <h2 id="modal-med-titulo">Novo Medicamento</h2>
@@ -164,7 +210,7 @@
     </div>
 </div>
 
-<!-- MODAL DE PROFISSIONAL -->
+<!-- Modal Profissional -->
 <div id="modal-prof" class="modal-overlay">
     <div class="modal">
         <h2 id="modal-prof-titulo">Novo Profissional</h2>
@@ -184,7 +230,7 @@
     </div>
 </div>
 
-<!-- MODAL DE PACIENTE (Edição) -->
+<!-- Modal Paciente -->
 <div id="modal-pac" class="modal-overlay">
     <div class="modal">
         <h2>Editar Paciente</h2>
@@ -198,7 +244,19 @@
     </div>
 </div>
 
-<!-- DIÁLOGO DE CONFIRMAÇÃO CUSTOMIZADO -->
+<!-- Modal Visualizar Receita -->
+<div id="modal-view-receita" class="modal-overlay">
+    <div class="modal" style="max-width: 800px;">
+        <h2>Detalhes da Receita</h2>
+        <div id="receita-detalhes"></div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="fecharModal('modal-view-receita')">Fechar</button>
+            <button class="btn btn-primary" id="btn-editar-receita">✏️ Editar Receita</button>
+        </div>
+    </div>
+</div>
+
+<!-- Diálogo de confirmação customizado -->
 <div id="confirm-dialog" class="confirm-dialog">
     <p id="confirm-message">Tem certeza que deseja excluir este registro?</p>
     <div class="confirm-actions">
@@ -209,7 +267,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, addDoc, updateDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDqyKxM4idfyKhRssyq-M7Yzb5lCSWS1sU",
@@ -224,20 +282,68 @@
     const db = getFirestore(app);
 
     // Estado global
-    let todosMeds = [], todosProfs = [], todosPacs = [];
+    let todosMeds = [], todosProfs = [], todosPacs = [], todasReceitas = [];
+    let chartReceitas = null;
     let callbackExclusao = null;
 
-    // ========== GERENCIAMENTO DE TABS ==========
+    // ========== INICIALIZAÇÃO ==========
+    async function carregarDadosDashboard() {
+        const [medsSnap, profsSnap, pacsSnap, receitasSnap] = await Promise.all([
+            getDocs(collection(db, "medicamentos_padrao")),
+            getDocs(collection(db, "profissionais")),
+            getDocs(collection(db, "pacientes")),
+            getDocs(query(collection(db, "receitas"), orderBy("data_criacao", "desc")))
+        ]);
+        document.getElementById('stat-meds').innerText = medsSnap.size;
+        document.getElementById('stat-profs').innerText = profsSnap.size;
+        document.getElementById('stat-pacientes').innerText = pacsSnap.size;
+        document.getElementById('stat-receitas').innerText = receitasSnap.size;
+        
+        const hoje = new Date();
+        const labels = [], valores = Array(7).fill(0);
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(hoje); d.setDate(hoje.getDate() - i);
+            labels.push(d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
+        }
+        receitasSnap.forEach(doc => {
+            const data = doc.data().data_criacao?.toDate?.() || new Date(doc.data().data_criacao);
+            const diff = Math.floor((hoje - data) / (1000*60*60*24));
+            if (diff >= 0 && diff < 7) valores[6 - diff]++;
+        });
+        if (chartReceitas) chartReceitas.destroy();
+        const ctx = document.getElementById('chart-receitas').getContext('2d');
+        chartReceitas = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Receitas', data: valores, backgroundColor: '#2563eb' }] } });
+    }
+
+    // ========== TABS ==========
     window.showTab = function(tab) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`panel-${tab}`).classList.add('active');
         event.target.classList.add('active');
-        
-        if (tab === 'meds') carregarMedicamentos();
+        if (tab === 'dashboard') carregarDadosDashboard();
+        else if (tab === 'meds') carregarMedicamentos();
         else if (tab === 'profs') carregarProfissionais();
         else if (tab === 'pacs') carregarPacientes();
+        else if (tab === 'receitas') carregarReceitas();
+        else if (tab === 'lixeira') carregarLixeira();
     };
+
+    // ========== SOFT DELETE ==========
+    async function softDelete(colecao, id, dados) {
+        await setDoc(doc(db, `lixeira_${colecao}`, id), { ...dados, deletado_em: new Date().toISOString(), colecao_original: colecao });
+        await deleteDoc(doc(db, colecao, id));
+    }
+
+    async function restoreFromTrash(colecao, id) {
+        const snap = await getDoc(doc(db, `lixeira_${colecao}`, id));
+        if (snap.exists()) {
+            const dados = snap.data();
+            delete dados.deletado_em; delete dados.colecao_original;
+            await setDoc(doc(db, colecao, id), dados);
+            await deleteDoc(doc(db, `lixeira_${colecao}`, id));
+        }
+    }
 
     // ========== MEDICAMENTOS ==========
     async function carregarMedicamentos() {
@@ -245,35 +351,14 @@
         todosMeds = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderizarTabelaMeds();
     }
-
-    function renderizarTabelaMeds(filtro = '') {
+    function renderizarTabelaMeds(filtro='') {
         const tbody = document.getElementById('tabela-meds');
         const filtrados = todosMeds.filter(m => m.nome.toLowerCase().includes(filtro.toLowerCase()));
-        if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px;">Nenhum medicamento encontrado</td></tr>`;
-            return;
-        }
-        tbody.innerHTML = filtrados.map(m => `
-            <tr>
-                <td><strong>${m.nome}</strong></td>
-                <td>${iconeApresentacao(m.apresentacao)} ${m.apresentacao || '-'}</td>
-                <td>${m.dosePadrao || '1'}</td>
-                <td>${m.indicacao || '-'}</td>
-                <td class="actions">
-                    <button class="icon-btn" onclick="editarMedicamento('${m.id}')" title="Editar">✏️</button>
-                    <button class="icon-btn" onclick="confirmarExclusao(() => excluirMedicamento('${m.id}'))" title="Excluir">🗑️</button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = filtrados.map(m => `<tr><td>${m.nome}</td><td>${m.apresentacao}</td><td>${m.dosePadrao}</td><td>${m.indicacao||'-'}</td>
+            <td class="actions"><button class="icon-btn" onclick="editarMedicamento('${m.id}')">✏️</button>
+            <button class="icon-btn" onclick="confirmarExclusao(() => moverParaLixeira('medicamentos_padrao', '${m.id}'))">🗑️</button></td></tr>`).join('');
     }
-
-    function iconeApresentacao(apre) {
-        const icons = { comprimido: '💊', meio_comprimido: '✂️', gotas: '💧', liquido: '🥄' };
-        return icons[apre] || '💊';
-    }
-
     window.filtrarMeds = () => renderizarTabelaMeds(document.getElementById('busca-med').value);
-
     window.abrirModalMed = (id = null) => {
         if (id) {
             const med = todosMeds.find(m => m.id === id);
@@ -293,19 +378,12 @@
         }
         document.getElementById('modal-med').style.display = 'flex';
     };
-
     window.salvarMedicamento = async () => {
         const nome = document.getElementById('med-nome').value.trim().toUpperCase();
         if (!nome) return alert('Nome é obrigatório!');
         const idOriginal = document.getElementById('med-id-original').value;
         const novoId = nome.replace(/[\/\.]/g, '-');
-        
-        const dados = {
-            nome,
-            apresentacao: document.getElementById('med-apre').value,
-            dosePadrao: document.getElementById('med-dose').value,
-            indicacao: document.getElementById('med-ind').value.toUpperCase()
-        };
+        const dados = { nome, apresentacao: document.getElementById('med-apre').value, dosePadrao: document.getElementById('med-dose').value, indicacao: document.getElementById('med-ind').value.toUpperCase() };
         try {
             if (idOriginal && idOriginal !== novoId) await deleteDoc(doc(db, "medicamentos_padrao", idOriginal));
             await setDoc(doc(db, "medicamentos_padrao", novoId), dados);
@@ -313,12 +391,10 @@
             carregarMedicamentos();
         } catch (e) { alert('Erro: ' + e); }
     };
-
     window.editarMedicamento = (id) => abrirModalMed(id);
-    
-    async function excluirMedicamento(id) {
-        await deleteDoc(doc(db, "medicamentos_padrao", id));
-        carregarMedicamentos();
+    async function moverParaLixeira(colecao, id) {
+        const snap = await getDoc(doc(db, colecao, id));
+        if (snap.exists()) { await softDelete(colecao.replace('_padrao',''), id, snap.data()); carregarMedicamentos(); }
     }
 
     // ========== PROFISSIONAIS ==========
@@ -327,26 +403,12 @@
         todosProfs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderizarTabelaProfs();
     }
-
     function renderizarTabelaProfs() {
         const tbody = document.getElementById('tabela-profs');
-        if (todosProfs.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Nenhum profissional cadastrado</td></tr>`;
-            return;
-        }
-        tbody.innerHTML = todosProfs.map(p => `
-            <tr>
-                <td><strong>${p.nome}</strong></td>
-                <td>${p.crm_crf || '-'}</td>
-                <td><span class="badge">${p.cargo}</span></td>
-                <td class="actions">
-                    <button class="icon-btn" onclick="editarProfissional('${p.id}')">✏️</button>
-                    <button class="icon-btn" onclick="confirmarExclusao(() => excluirProfissional('${p.id}'))">🗑️</button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = todosProfs.map(p => `<tr><td>${p.nome}</td><td>${p.crm_crf||'-'}</td><td>${p.cargo}</td>
+            <td class="actions"><button class="icon-btn" onclick="editarProfissional('${p.id}')">✏️</button>
+            <button class="icon-btn" onclick="confirmarExclusao(() => moverParaLixeira('profissionais', '${p.id}'))">🗑️</button></td></tr>`).join('');
     }
-
     window.abrirModalProf = (id = null) => {
         if (id) {
             const prof = todosProfs.find(p => p.id === id);
@@ -364,17 +426,12 @@
         }
         document.getElementById('modal-prof').style.display = 'flex';
     };
-
     window.salvarProfissional = async () => {
         const nome = document.getElementById('prof-nome').value.trim();
         if (!nome) return alert('Nome é obrigatório!');
         const idOriginal = document.getElementById('prof-id-original').value;
-        const novoId = nome.replace(/[\/\.\s]/g, '_').substring(0, 40);
-        const dados = {
-            nome,
-            crm_crf: document.getElementById('prof-registro').value.trim(),
-            cargo: document.getElementById('prof-cargo').value
-        };
+        const novoId = nome.replace(/[\/\.\s]/g, '_').substring(0,40);
+        const dados = { nome, crm_crf: document.getElementById('prof-registro').value.trim(), cargo: document.getElementById('prof-cargo').value };
         try {
             if (idOriginal && idOriginal !== novoId) await deleteDoc(doc(db, "profissionais", idOriginal));
             await setDoc(doc(db, "profissionais", novoId), dados);
@@ -382,13 +439,7 @@
             carregarProfissionais();
         } catch (e) { alert('Erro: ' + e); }
     };
-
     window.editarProfissional = (id) => abrirModalProf(id);
-    
-    async function excluirProfissional(id) {
-        await deleteDoc(doc(db, "profissionais", id));
-        carregarProfissionais();
-    }
 
     // ========== PACIENTES ==========
     async function carregarPacientes() {
@@ -396,31 +447,15 @@
         todosPacs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderizarTabelaPacs();
     }
-
-    function renderizarTabelaPacs(filtro = '') {
+    function renderizarTabelaPacs(filtro='') {
         const tbody = document.getElementById('tabela-pacs');
         const termo = filtro.toLowerCase();
-        const filtrados = todosPacs.filter(p => 
-            p.nome.toLowerCase().includes(termo) || p.prontuario.includes(termo)
-        );
-        if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Nenhum paciente encontrado</td></tr>`;
-            return;
-        }
-        tbody.innerHTML = filtrados.map(p => `
-            <tr>
-                <td><code>${p.prontuario}</code></td>
-                <td><strong>${p.nome}</strong></td>
-                <td class="actions">
-                    <button class="icon-btn" onclick="editarPaciente('${p.id}')">✏️</button>
-                    <button class="icon-btn" onclick="confirmarExclusao(() => excluirPaciente('${p.id}'))">🗑️</button>
-                </td>
-            </tr>
-        `).join('');
+        const filtrados = todosPacs.filter(p => p.nome.toLowerCase().includes(termo) || p.prontuario.includes(termo));
+        tbody.innerHTML = filtrados.map(p => `<tr><td>${p.prontuario}</td><td>${p.nome}</td>
+            <td class="actions"><button class="icon-btn" onclick="editarPaciente('${p.id}')">✏️</button>
+            <button class="icon-btn" onclick="confirmarExclusao(() => moverParaLixeira('pacientes', '${p.id}'))">🗑️</button></td></tr>`).join('');
     }
-
     window.filtrarPacs = () => renderizarTabelaPacs(document.getElementById('busca-pac').value);
-
     window.editarPaciente = (id) => {
         const pac = todosPacs.find(p => p.id === id);
         document.getElementById('pac-id-original').value = pac.id;
@@ -428,7 +463,6 @@
         document.getElementById('pac-nome').value = pac.nome;
         document.getElementById('modal-pac').style.display = 'flex';
     };
-
     window.salvarPaciente = async () => {
         const pront = document.getElementById('pac-pront').value.trim();
         const nome = document.getElementById('pac-nome').value.trim();
@@ -442,52 +476,80 @@
         } catch (e) { alert('Erro: ' + e); }
     };
 
-    async function excluirPaciente(id) {
-        await deleteDoc(doc(db, "pacientes", id));
-        carregarPacientes();
+    // ========== RECEITAS ==========
+    async function carregarReceitas() {
+        const q = query(collection(db, "receitas"), orderBy("data_criacao", "desc"));
+        const snap = await getDocs(q);
+        todasReceitas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderizarTabelaReceitas();
     }
-
-    // ========== CONFIRMAÇÃO CUSTOMIZADA ==========
-    window.confirmarExclusao = (callback) => {
-        callbackExclusao = callback;
-        document.getElementById('confirm-message').innerText = 'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.';
-        document.getElementById('confirm-dialog').style.display = 'block';
+    function renderizarTabelaReceitas(filtro='') {
+        const tbody = document.getElementById('tabela-receitas');
+        const termo = filtro.toLowerCase();
+        const filtradas = todasReceitas.filter(r => r.paciente_nome?.toLowerCase().includes(termo) || r.prontuario?.includes(termo));
+        tbody.innerHTML = filtradas.map(r => `<tr>
+            <td>${r.data_criacao ? new Date(r.data_criacao).toLocaleDateString() : '-'}</td>
+            <td>${r.paciente_nome}</td><td>${r.prontuario}</td><td>${r.medico_id}</td>
+            <td class="actions"><button class="icon-btn" onclick="visualizarReceita('${r.id}')">👁️</button>
+            <button class="icon-btn" onclick="window.location.href='index.html?receitaId=${r.id}'">✏️</button>
+            <button class="icon-btn" onclick="confirmarExclusao(() => moverParaLixeira('receitas', '${r.id}'))">🗑️</button></td>
+        </tr>`).join('');
+    }
+    window.filtrarReceitas = () => renderizarTabelaReceitas(document.getElementById('busca-receita').value);
+    window.visualizarReceita = async (id) => {
+        const snap = await getDoc(doc(db, "receitas", id));
+        if (!snap.exists()) return;
+        const rec = snap.data();
+        const detalhes = document.getElementById('receita-detalhes');
+        detalhes.innerHTML = `<p><strong>Paciente:</strong> ${rec.paciente_nome} (${rec.prontuario})</p>
+            <p><strong>Médico:</strong> ${rec.medico_id} | Farmacêutico: ${rec.farmaceutico_id}</p>
+            <h4>Fixos:</h4><pre>${JSON.stringify(rec.medicamentos_fixos, null, 2)}</pre>
+            <h4>SOS:</h4><pre>${JSON.stringify(rec.medicamentos_sos, null, 2)}</pre>`;
+        document.getElementById('btn-editar-receita').onclick = () => window.location.href = `index.html?receitaId=${id}`;
+        document.getElementById('modal-view-receita').style.display = 'flex';
     };
 
-    window.fecharConfirmacao = () => {
-        document.getElementById('confirm-dialog').style.display = 'none';
-        callbackExclusao = null;
+    // ========== LIXEIRA ==========
+    async function carregarLixeira() {
+        const tipo = document.getElementById('lixeira-tipo').value;
+        const snap = await getDocs(collection(db, `lixeira_${tipo}`));
+        const div = document.getElementById('lixeira-conteudo');
+        let html = `<table><tr><th>ID</th><th>Dados</th><th>Excluído em</th><th>Ações</th></tr>`;
+        snap.forEach(doc => {
+            const d = doc.data();
+            html += `<tr><td>${doc.id}</td><td>${JSON.stringify(d).substring(0,100)}...</td><td>${new Date(d.deletado_em).toLocaleString()}</td>
+                <td><button onclick="restaurar('${tipo}','${doc.id}')">↩️ Restaurar</button>
+                <button onclick="excluirPermanentemente('${tipo}','${doc.id}')">❌ Excluir permanente</button></td></tr>`;
+        });
+        div.innerHTML = html + '</table>';
+    }
+    window.restaurar = async (tipo, id) => { await restoreFromTrash(tipo, id); carregarLixeira(); };
+    window.excluirPermanentemente = async (tipo, id) => { await deleteDoc(doc(db, `lixeira_${tipo}`, id)); carregarLixeira(); };
+
+    // ========== EXPORTAÇÃO CSV ==========
+    window.exportarCSV = function(tipo) {
+        let dados = [], cabecalho = [], nomeArquivo = tipo;
+        if (tipo === 'medicamentos') { dados = todosMeds; cabecalho = ['nome','apresentacao','dosePadrao','indicacao']; }
+        else if (tipo === 'profissionais') { dados = todosProfs; cabecalho = ['nome','crm_crf','cargo']; }
+        else if (tipo === 'pacientes') { dados = todosPacs; cabecalho = ['prontuario','nome']; }
+        else if (tipo === 'receitas') { dados = todasReceitas; cabecalho = ['data_criacao','paciente_nome','prontuario','medico_id','farmaceutico_id']; }
+        const csv = [cabecalho.join(','), ...dados.map(obj => cabecalho.map(c => JSON.stringify(obj[c]||'')).join(','))].join('\n');
+        const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${nomeArquivo}.csv`; a.click();
     };
 
-    document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
-        if (callbackExclusao) {
-            await callbackExclusao();
-            fecharConfirmacao();
-        }
-    });
+    // ========== CONFIRMAÇÃO ==========
+    window.confirmarExclusao = (callback) => { callbackExclusao = callback; document.getElementById('confirm-message').innerText = 'Tem certeza que deseja mover para a lixeira?'; document.getElementById('confirm-dialog').style.display = 'block'; };
+    window.fecharConfirmacao = () => { document.getElementById('confirm-dialog').style.display = 'none'; callbackExclusao = null; };
+    document.getElementById('confirm-ok-btn').addEventListener('click', async () => { if (callbackExclusao) { await callbackExclusao(); fecharConfirmacao(); } });
 
-    // ========== UTILITÁRIOS ==========
-    window.fecharModal = (idModal) => {
-        document.getElementById(idModal).style.display = 'none';
-    };
-
-    // Fechar modais ao clicar fora
-    window.onclick = (event) => {
-        if (event.target.classList.contains('modal-overlay')) {
-            event.target.style.display = 'none';
-        }
-    };
+    window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
+    window.onclick = (e) => { if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none'; };
 
     // Inicialização
-    carregarMedicamentos();
-    
-    // Expor funções globais
+    carregarDadosDashboard();
     window.carregarMedicamentos = carregarMedicamentos;
-    window.carregarProfissionais = carregarProfissionais;
-    window.carregarPacientes = carregarPacientes;
-    window.excluirMedicamento = excluirMedicamento;
-    window.excluirProfissional = excluirProfissional;
-    window.excluirPaciente = excluirPaciente;
+    window.carregarLixeira = carregarLixeira;
 </script>
 </body>
 </html>
