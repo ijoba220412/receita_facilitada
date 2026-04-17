@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ✅ REGRAS DE DESENVOLVIMENTO (remova ao ir para produção)
+    match /{document=**} {
+      allow read, write: if request.time < timestamp.date(2026, 12, 31);
+    }
+
+    // 🛡️ EXEMPLO DE REGRAS PRODUÇÃO (recomendado com Firebase Auth)
+    // function isSignedIn() { return request.auth != null; }
+    // match /medicamentos_padrao/{id} { allow read: if true; allow write: if isSignedIn(); }
+    // match /receitas/{id} { allow read, write: if isSignedIn(); }
+  }
+}
