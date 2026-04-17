@@ -4,492 +4,437 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Administrativo · HC IV</title>
-  <link rel="stylesheet" href="02-styles.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+  <a href="#main-content" class="skip-link">Pular para conteúdo</a>
 
   <header class="header">
-    <h1 class="header__title">
-      <i data-lucide="settings" class="icon--md" aria-hidden="true"></i>
-      Gestão do Sistema HC IV
-    </h1>
-    <a href="index.html" class="btn btn--secondary">
-      <i data-lucide="arrow-left" class="icon--sm" aria-hidden="true"></i>
-      Voltar para Receitas
-    </a>
+    <div class="header-title">
+      <span>⚙️ GESTÃO DO SISTEMA HC IV</span>
+    </div>
+    <a href="index.html" class="btn btn-outline">⬅ VOLTAR PARA RECEITAS</a>
   </header>
 
   <main id="main-content" class="container">
-    <!-- NAVEGAÇÃO POR ABAS -->
-    <div class="tabs" role="tablist" aria-label="Seções administrativas">
-      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="dashboard">
-        <i data-lucide="bar-chart-3" aria-hidden="true"></i> Dashboard
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="medicamentos">
-        <i data-lucide="pill" aria-hidden="true"></i> Medicamentos
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profissionais">
-        <i data-lucide="user-check" aria-hidden="true"></i> Profissionais
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="pacientes">
-        <i data-lucide="users" aria-hidden="true"></i> Pacientes
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="receitas">
-        <i data-lucide="file-text" aria-hidden="true"></i> Receitas
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="lixeira">
-        <i data-lucide="trash-2" aria-hidden="true"></i> Lixeira
-      </button>
+    <!-- NAVEGAÇÃO POR ABAS (Dashboard por último) -->
+    <div class="tabs no-print" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="medicamentos">💊 MEDICAMENTOS</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profissionais">👨‍⚕️ PROFISSIONAIS</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="pacientes">🏥 PACIENTES</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="setores">🏢 SETORES/HOSPITAIS</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="posologias">📋 POSOLOGIAS</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="lixeira">🗑️ LIXEIRA</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="dashboard" style="margin-left:auto; background:var(--primary-light); color:var(--primary);">📊 DASHBOARD</button>
     </div>
 
-    <!-- PAINEL: DASHBOARD -->
-    <section id="panel-dashboard" class="panel active fade-in" role="tabpanel">
-      <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
-        <div class="card text-center">
-          <div style="font-size: 2rem; font-weight: 800; color: var(--color-primary);" id="stat-receitas">0</div>
-          <div class="text-muted">Receitas Emitidas</div>
-        </div>
-        <div class="card text-center">
-          <div style="font-size: 2rem; font-weight: 800; color: var(--color-success);" id="stat-pacientes">0</div>
-          <div class="text-muted">Pacientes Cadastrados</div>
-        </div>
-        <div class="card text-center">
-          <div style="font-size: 2rem; font-weight: 800; color: var(--color-warning);" id="stat-meds">0</div>
-          <div class="text-muted">Medicamentos Padrão</div>
-        </div>
-        <div class="card text-center">
-          <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary);" id="stat-profs">0</div>
-          <div class="text-muted">Profissionais</div>
-        </div>
-      </div>
+    <!-- 1. MEDICAMENTOS -->
+    <section id="panel-medicamentos" class="panel active" role="tabpanel">
       <div class="card">
-        <h3 class="mb-md">📈 Receitas nos últimos 7 dias</h3>
-        <canvas id="chart-receitas" height="250"></canvas>
-      </div>
-    </section>
-
-    <!-- PAINEL: MEDICAMENTOS -->
-    <section id="panel-medicamentos" class="panel" role="tabpanel" hidden>
-      <div class="flex flex-col md:flex-row justify-between items-center mb-md gap-sm">
-        <h2 class="text-lg font-bold">💊 Medicamentos Padrão</h2>
-        <div class="flex gap-sm w-full md:w-auto">
-          <div class="search-wrapper" style="flex: 1;">
-            <i data-lucide="search" class="icon--sm" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted);" aria-hidden="true"></i>
-            <input type="text" id="busca-med" class="form-input" placeholder="Buscar por nome..." style="padding-left: 36px;">
+        <div class="card-header">
+          <h2 class="card-title">💊 MEDICAMENTOS PADRÃO</h2>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="busca-med" class="form-input" placeholder="🔍 BUSCAR..." style="width:250px;">
+            <button class="btn btn-success" onclick="abrirModal('modal-med')">➕ NOVO</button>
+            <button class="btn btn-outline" onclick="exportarCSV('medicamentos')">📥 CSV</button>
           </div>
-          <button class="btn btn--success" onclick="abrirModal('modal-med')">
-            <i data-lucide="plus" class="icon--sm" aria-hidden="true"></i> Novo
-          </button>
-          <button class="btn btn--secondary" onclick="exportarCSV('medicamentos')">
-            <i data-lucide="download" class="icon--sm" aria-hidden="true"></i> CSV
-          </button>
         </div>
-      </div>
-      <div class="table-container">
-        <table class="table" id="tabela-meds">
-          <thead><tr><th>Nome</th><th>Apresentação</th><th>Dose Padrão</th><th>Indicação</th><th>Ações</th></tr></thead>
-          <tbody><tr><td colspan="5" class="text-center text-muted" style="padding: 40px;">Carregando...</td></tr></tbody>
-        </table>
+        <div class="table-container">
+          <table class="table" id="tabela-meds">
+            <thead><tr><th>NOME</th><th>APRESENTAÇÃO</th><th>DOSE PADRÃO</th><th>INDICAÇÃO</th><th>AÇÕES</th></tr></thead>
+            <tbody><tr><td colspan="5" class="text-center">CARREGANDO...</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- PAINEL: PROFISSIONAIS -->
+    <!-- 2. PROFISSIONAIS -->
     <section id="panel-profissionais" class="panel" role="tabpanel" hidden>
-      <div class="flex justify-between items-center mb-md">
-        <h2 class="text-lg font-bold">👨‍⚕️ Profissionais</h2>
-        <div class="flex gap-sm">
-          <button class="btn btn--success" onclick="abrirModal('modal-prof')">
-            <i data-lucide="plus" class="icon--sm" aria-hidden="true"></i> Novo
-          </button>
-          <button class="btn btn--secondary" onclick="exportarCSV('profissionais')">
-            <i data-lucide="download" class="icon--sm" aria-hidden="true"></i> CSV
-          </button>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">👨‍⚕️ PROFISSIONAIS</h2>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-success" onclick="abrirModal('modal-prof')">➕ NOVO</button>
+            <button class="btn btn-outline" onclick="exportarCSV('profissionais')">📥 CSV</button>
+          </div>
         </div>
-      </div>
-      <div class="table-container">
-        <table class="table" id="tabela-profs">
-          <thead><tr><th>Nome</th><th>Registro</th><th>Cargo</th><th>Ações</th></tr></thead>
-          <tbody><tr><td colspan="4" class="text-center text-muted" style="padding: 40px;">Carregando...</td></tr></tbody>
-        </table>
+        <div class="table-container">
+          <table class="table" id="tabela-profs">
+            <thead><tr><th>NOME</th><th>REGISTRO (CRM/CRF)</th><th>CARGO</th><th>AÇÕES</th></tr></thead>
+            <tbody><tr><td colspan="4" class="text-center">CARREGANDO...</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- PAINEL: PACIENTES -->
+    <!-- 3. PACIENTES -->
     <section id="panel-pacientes" class="panel" role="tabpanel" hidden>
-      <div class="flex justify-between items-center mb-md">
-        <h2 class="text-lg font-bold">🏥 Pacientes</h2>
-        <div class="flex gap-sm w-full md:w-auto">
-          <input type="text" id="busca-pac" class="form-input" placeholder="Buscar por nome ou prontuário...">
-          <button class="btn btn--secondary" onclick="exportarCSV('pacientes')">
-            <i data-lucide="download" class="icon--sm" aria-hidden="true"></i> CSV
-          </button>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏥 PACIENTES</h2>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="busca-pac" class="form-input" placeholder="🔍 BUSCAR..." style="width:250px;">
+            <button class="btn btn-outline" onclick="exportarCSV('pacientes')">📥 CSV</button>
+          </div>
         </div>
-      </div>
-      <div class="table-container">
-        <table class="table" id="tabela-pacs">
-          <thead><tr><th>Prontuário</th><th>Nome Completo</th><th>Ações</th></tr></thead>
-          <tbody><tr><td colspan="3" class="text-center text-muted" style="padding: 40px;">Carregando...</td></tr></tbody>
-        </table>
+        <div class="table-container">
+          <table class="table" id="tabela-pacs">
+            <thead><tr><th>PRONTUÁRIO</th><th>NOME</th><th>NASCIMENTO</th><th>IDADE</th><th>AÇÕES</th></tr></thead>
+            <tbody><tr><td colspan="5" class="text-center">CARREGANDO...</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- PAINEL: RECEITAS -->
-    <section id="panel-receitas" class="panel" role="tabpanel" hidden>
-      <div class="flex justify-between items-center mb-md">
-        <h2 class="text-lg font-bold">📋 Histórico de Receitas</h2>
-        <div class="flex gap-sm w-full md:w-auto">
-          <input type="text" id="busca-receita" class="form-input" placeholder="Buscar paciente ou prontuário...">
-          <button class="btn btn--secondary" onclick="exportarCSV('receitas')">
-            <i data-lucide="download" class="icon--sm" aria-hidden="true"></i> CSV
-          </button>
+    <!-- 4. SETORES/HOSPITAIS -->
+    <section id="panel-setores" class="panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏢 SETORES E HOSPITAIS</h2>
+          <button class="btn btn-success" onclick="abrirModal('modal-setor')">➕ NOVO SETOR</button>
         </div>
-      </div>
-      <div class="table-container">
-        <table class="table" id="tabela-receitas">
-          <thead><tr><th>Data</th><th>Paciente</th><th>Prontuário</th><th>Médico</th><th>Ações</th></tr></thead>
-          <tbody><tr><td colspan="5" class="text-center text-muted" style="padding: 40px;">Carregando...</td></tr></tbody>
-        </table>
+        <div class="table-container">
+          <table class="table" id="tabela-setores">
+            <thead><tr><th>NOME DO SETOR/HOSPITAL</th><th>DESCRIÇÃO</th><th>AÇÕES</th></tr></thead>
+            <tbody><tr><td colspan="3" class="text-center">CARREGANDO...</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- PAINEL: LIXEIRA -->
+    <!-- 5. POSOLOGIAS -->
+    <section id="panel-posologias" class="panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📋 POSOLOGIAS PADRÃO</h2>
+          <button class="btn btn-success" onclick="abrirModal('modal-poso')">➕ NOVA POSOLOGIA</button>
+        </div>
+        <div class="table-container">
+          <table class="table" id="tabela-posos">
+            <thead><tr><th>SINTOMA/CONDIÇÃO</th><th>INSTRUÇÃO PADRÃO</th><th>ÍCONE</th><th>AÇÕES</th></tr></thead>
+            <tbody><tr><td colspan="4" class="text-center">CARREGANDO...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. LIXEIRA -->
     <section id="panel-lixeira" class="panel" role="tabpanel" hidden>
-      <div class="flex justify-between items-center mb-md">
-        <h2 class="text-lg font-bold">🗑️ Registros Excluídos</h2>
-        <select id="lixeira-tipo" class="form-select" style="width: 200px;">
-          <option value="medicamentos">Medicamentos</option>
-          <option value="profissionais">Profissionais</option>
-          <option value="pacientes">Pacientes</option>
-          <option value="receitas">Receitas</option>
-        </select>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🗑️ REGISTROS EXCLUÍDOS</h2>
+          <select id="lixeira-tipo" class="form-select" style="width:250px;">
+            <option value="medicamentos">MEDICAMENTOS</option>
+            <option value="profissionais">PROFISSIONAIS</option>
+            <option value="pacientes">PACIENTES</option>
+            <option value="receitas">RECEITAS</option>
+            <option value="setores">SETORES</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="table" id="tabela-lixeira">
+            <thead><tr><th>ID</th><th>DADOS</th><th>EXCLUÍDO EM</th><th>AÇÕES</th></tr></thead>
+            <tbody><tr><td colspan="4" class="text-center">SELECIONE UM TIPO PARA VER OS REGISTROS</td></tr></tbody>
+          </table>
+        </div>
       </div>
-      <div class="table-container">
-        <table class="table" id="tabela-lixeira">
-          <thead><tr><th>ID</th><th>Dados</th><th>Excluído em</th><th>Ações</th></tr></thead>
-          <tbody><tr><td colspan="4" class="text-center text-muted" style="padding: 40px;">Selecione um tipo...</td></tr></tbody>
-        </table>
+    </section>
+
+    <!-- 7. DASHBOARD (Lazy Load - Só carrega quando clicar) -->
+    <section id="panel-dashboard" class="panel" role="tabpanel" hidden>
+      <div id="dashboard-content">
+        <!-- Conteúdo será injetado via JS quando a aba for ativada -->
       </div>
     </section>
   </main>
 
   <!-- MODAL: MEDICAMENTO -->
-  <div id="modal-med" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-med-titulo" hidden>
+  <div id="modal-med" class="modal-overlay" role="dialog" aria-modal="true" hidden>
     <div class="modal">
-      <div class="modal__header">
-        <h2 id="modal-med-titulo" class="modal__title">Novo Medicamento</h2>
-        <button class="modal__close" onclick="fecharModal('modal-med')" aria-label="Fechar modal">
-          <i data-lucide="x" class="icon--md"></i>
-        </button>
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-med-titulo">NOVO MEDICAMENTO</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-med')">✕</button>
       </div>
-      <form id="form-med" onsubmit="event.preventDefault(); salvarMedicamento();">
+      <form onsubmit="event.preventDefault(); salvarMedicamento();">
         <input type="hidden" id="med-id-edit">
         <div class="form-group">
-          <label class="form-label form-label--required">Nome do Medicamento</label>
-          <input type="text" id="med-nome" class="form-input" required autocomplete="off">
+          <label class="form-label form-label--required">NOME DO MEDICAMENTO</label>
+          <input type="text" id="med-nome" class="form-input" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Apresentação</label>
-          <select id="med-apre" class="form-select">
-            <option value="comprimido">💊 Comprimido</option>
-            <option value="meio_comprimido">✂️ Meio comprimido</option>
-            <option value="gotas">💧 Gotas</option>
-            <option value="liquido">🥄 Líquido (ml)</option>
-          </select>
+        <div class="form-grid">
+          <div>
+            <label class="form-label">APRESENTAÇÃO</label>
+            <select id="med-apre" class="form-select">
+              <option value="comprimido">💊 COMPRIMIDO</option>
+              <option value="meio_comprimido">✂️ MEIO COMPRIMIDO</option>
+              <option value="capsula">💊 CÁPSULA</option>
+              <option value="gotas">💧 GOTAS</option>
+              <option value="liquido">🥄 LÍQUIDO (ML)</option>
+              <option value="pomada">🧴 POMADA/CREME</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">DOSE PADRÃO</label>
+            <input type="text" id="med-dose" class="form-input" placeholder="EX: 1, 500MG, 10ML">
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Dose Padrão</label>
-          <input type="text" id="med-dose" class="form-input" placeholder="Ex: 1, 40, 500mg">
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">INDICAÇÃO (PARA QUE SERVE)</label>
+          <input type="text" id="med-ind" class="form-input" placeholder="EX: PARA DOR, FEBRE...">
         </div>
-        <div class="form-group">
-          <label class="form-label">Indicação</label>
-          <input type="text" id="med-ind" class="form-input" placeholder="Ex: PARA DOR">
-        </div>
-        <div class="modal__footer">
-          <button type="button" class="btn btn--secondary" onclick="fecharModal('modal-med')">Cancelar</button>
-          <button type="submit" class="btn btn--primary" id="btn-salvar-med">
-            <i data-lucide="save" class="icon--sm" aria-hidden="true"></i> Salvar
-          </button>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-med')">CANCELAR</button>
+          <button type="submit" class="btn btn-primary">💾 SALVAR</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL: PROFISSIONAL -->
-  <div id="modal-prof" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-prof-titulo" hidden>
+  <div id="modal-prof" class="modal-overlay" role="dialog" aria-modal="true" hidden>
     <div class="modal">
-      <div class="modal__header">
-        <h2 id="modal-prof-titulo" class="modal__title">Novo Profissional</h2>
-        <button class="modal__close" onclick="fecharModal('modal-prof')" aria-label="Fechar modal">
-          <i data-lucide="x" class="icon--md"></i>
-        </button>
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-prof-titulo">NOVO PROFISSIONAL</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-prof')">✕</button>
       </div>
-      <form id="form-prof" onsubmit="event.preventDefault(); salvarProfissional();">
+      <form onsubmit="event.preventDefault(); salvarProfissional();">
         <input type="hidden" id="prof-id-edit">
         <div class="form-group">
-          <label class="form-label form-label--required">Nome Completo</label>
+          <label class="form-label form-label--required">NOME COMPLETO</label>
           <input type="text" id="prof-nome" class="form-input" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Registro (CRM/CRF)</label>
-          <input type="text" id="prof-registro" class="form-input">
+        <div class="form-grid">
+          <div>
+            <label class="form-label">REGISTRO (CRM/CRF)</label>
+            <input type="text" id="prof-registro" class="form-input">
+          </div>
+          <div>
+            <label class="form-label form-label--required">CARGO</label>
+            <select id="prof-cargo" class="form-select" required>
+              <option value="MÉDICO(A)">👨‍⚕️ MÉDICO(A)</option>
+              <option value="FARMACÊUTICO(A)">💊 FARMACÊUTICO(A)</option>
+              <option value="ENFERMEIRO(A)">👨‍⚕️ ENFERMEIRO(A)</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label form-label--required">Cargo</label>
-          <select id="prof-cargo" class="form-select" required>
-            <option value="Médico(a)">👨‍⚕️ Médico(a)</option>
-            <option value="Farmacêutico(a)">💊 Farmacêutico(a)</option>
-          </select>
-        </div>
-        <div class="modal__footer">
-          <button type="button" class="btn btn--secondary" onclick="fecharModal('modal-prof')">Cancelar</button>
-          <button type="submit" class="btn btn--primary">
-            <i data-lucide="save" class="icon--sm" aria-hidden="true"></i> Salvar
-          </button>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-prof')">CANCELAR</button>
+          <button type="submit" class="btn btn-primary">💾 SALVAR</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- CONFIRMAÇÃO GENÉRICA -->
-  <div id="modal-confirm" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
-    <div class="modal" style="max-width: 400px;">
-      <div class="modal__header">
-        <h2 id="confirm-title" class="modal__title">Confirmar Ação</h2>
-        <button class="modal__close" onclick="fecharConfirmacao()" aria-label="Cancelar">
-          <i data-lucide="x" class="icon--md"></i>
-        </button>
+  <!-- MODAL: PACIENTE -->
+  <div id="modal-pac" class="modal-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">EDITAR PACIENTE</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-pac')">✕</button>
       </div>
-      <p id="confirm-msg" style="margin-bottom: 20px; color: var(--text-secondary);"></p>
-      <div class="modal__footer">
-        <button class="btn btn--secondary" onclick="fecharConfirmacao()">Cancelar</button>
-        <button class="btn btn--danger" id="confirm-ok">
-          <i data-lucide="trash-2" class="icon--sm" aria-hidden="true"></i> Confirmar
-        </button>
+      <form onsubmit="event.preventDefault(); salvarPaciente();">
+        <input type="hidden" id="pac-id-edit">
+        <div class="form-grid">
+          <div>
+            <label class="form-label form-label--required">PRONTUÁRIO</label>
+            <input type="text" id="pac-pront" class="form-input" required>
+          </div>
+          <div>
+            <label class="form-label">DATA DE NASCIMENTO</label>
+            <input type="date" id="pac-nasc" class="form-input">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label form-label--required">NOME COMPLETO</label>
+          <input type="text" id="pac-nome" class="form-input" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-pac')">CANCELAR</button>
+          <button type="submit" class="btn btn-primary">💾 SALVAR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SETOR -->
+  <div id="modal-setor" class="modal-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-setor-titulo">NOVO SETOR/HOSPITAL</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-setor')">✕</button>
+      </div>
+      <form onsubmit="event.preventDefault(); salvarSetor();">
+        <input type="hidden" id="setor-id-edit">
+        <div class="form-group">
+          <label class="form-label form-label--required">NOME DO SETOR/HOSPITAL</label>
+          <input type="text" id="setor-nome" class="form-input" required placeholder="EX: HC IV, UBS CENTRO...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DESCRIÇÃO</label>
+          <textarea id="setor-desc" class="form-textarea" rows="3" placeholder="EX: HOSPITAL DE REFERÊNCIA EM ONCOLOGIA"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-setor')">CANCELAR</button>
+          <button type="submit" class="btn btn-primary">💾 SALVAR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: POSOLOGIA -->
+  <div id="modal-poso" class="modal-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-poso-titulo">NOVA POSOLOGIA PADRÃO</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-poso')">✕</button>
+      </div>
+      <form onsubmit="event.preventDefault(); salvarPosologia();">
+        <input type="hidden" id="poso-id-edit">
+        <div class="form-group">
+          <label class="form-label form-label--required">SINTOMA/CONDIÇÃO</label>
+          <input type="text" id="poso-sintoma" class="form-input" required placeholder="EX: DOR DE CABEÇA, FEBRE...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">INSTRUÇÃO PADRÃO</label>
+          <textarea id="poso-instrucao" class="form-textarea" rows="3" placeholder="EX: TOMAR 1 COMPRIMIDO A CADA 6 HORAS SE NECESSÁRIO"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ÍCONE (EMOJI)</label>
+          <input type="text" id="poso-icone" class="form-input" placeholder="EX: 🤕, 🌡️, " maxlength="4">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-poso')">CANCELAR</button>
+          <button type="submit" class="btn btn-primary">💾 SALVAR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAÇÃO -->
+  <div id="modal-confirm" class="modal-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="modal" style="max-width:450px;">
+      <div class="modal-header">
+        <h3 class="modal-title">CONFIRMAR AÇÃO</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-confirm')">✕</button>
+      </div>
+      <p id="confirm-msg" style="margin:20px 0; font-size:1.05rem;"></p>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="fecharModal('modal-confirm')">CANCELAR</button>
+        <button class="btn btn-danger" id="confirm-ok">✅ CONFIRMAR</button>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { db, COLLECTIONS, notificar, softDelete, restaurarDaLixeira } from './01-config.js';
-    import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy, getDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { db, COLS, fetchAll, salvarDoc, excluirDoc, formatDate, calcularIdade, notificar, toUpperSafe } from './config.js';
+    import { collection, getDocs, query, orderBy, doc, getDoc, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ========== ESTADO GLOBAL ==========
-    let dados = { meds: [], profs: [], pacs: [], receitas: [], lixeira: [] };
-    let chartReceitas = null;
+    // ESTADO
+    let dados = { meds:[], profs:[], pacs:[], setores:[], posos:[], receitas:[] };
     let callbackConfirm = null;
-    let tabAtual = 'dashboard';
+    let dashboardCarregado = false;
 
-    // ========== INICIALIZAÇÃO ==========
+    // INICIALIZAÇÃO
     document.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide) lucide.createIcons();
       configurarAbas();
-      configurarBuscas();
-      carregarDashboard();
+      carregarMedicamentos(); // Carrega CRUD inicial
     });
 
-    // ========== NAVEGAÇÃO ==========
+    // NAVEGAÇÃO POR ABAS
     function configurarAbas() {
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+          // Atualiza abas
           document.querySelectorAll('.tab-btn').forEach(b => {
             b.classList.remove('active');
             b.setAttribute('aria-selected', 'false');
           });
           btn.classList.add('active');
           btn.setAttribute('aria-selected', 'true');
-          
+
+          // Mostra painel
           const tab = btn.dataset.tab;
-          tabAtual = tab;
-          
-          document.querySelectorAll('section[role="tabpanel"]').forEach(p => {
+          document.querySelectorAll('.panel').forEach(p => {
             p.hidden = true;
             p.classList.remove('active');
           });
-          
           const panel = document.getElementById(`panel-${tab}`);
           panel.hidden = false;
           panel.classList.add('active');
-          
-          if (tab === 'dashboard') carregarDashboard();
-          else if (tab === 'medicamentos') carregarMedicamentos();
-          else if (tab === 'profissionais') carregarProfissionais();
-          else if (tab === 'pacientes') carregarPacientes();
-          else if (tab === 'receitas') carregarReceitas();
-          else if (tab === 'lixeira') carregarLixeira();
+
+          // Carrega dados específicos
+          if(tab === 'medicamentos') carregarMedicamentos();
+          else if(tab === 'profissionais') carregarProfissionais();
+          else if(tab === 'pacientes') carregarPacientes();
+          else if(tab === 'setores') carregarSetores();
+          else if(tab === 'posologias') carregarPosologias();
+          else if(tab === 'lixeira') carregarLixeira();
+          else if(tab === 'dashboard') carregarDashboard();
         });
       });
     }
 
-    function configurarBuscas() {
-      document.getElementById('busca-med')?.addEventListener('input', e => filtrarTabela('meds', e.target.value));
-      document.getElementById('busca-pac')?.addEventListener('input', e => filtrarTabela('pacs', e.target.value));
-      document.getElementById('busca-receita')?.addEventListener('input', e => filtrarTabela('receitas', e.target.value));
-      document.getElementById('lixeira-tipo')?.addEventListener('change', carregarLixeira);
-    }
-
-    // ========== DASHBOARD ==========
-    async function carregarDashboard() {
-      try {
-        const [meds, profs, pacs, receitas] = await Promise.all([
-          getDocs(collection(db, COLLECTIONS.MEDICAMENTOS)),
-          getDocs(collection(db, COLLECTIONS.PROFISSIONAIS)),
-          getDocs(collection(db, COLLECTIONS.PACIENTES)),
-          getDocs(query(collection(db, COLLECTIONS.RECEITAS), orderBy('data_criacao', 'desc')))
-        ]);
-        
-        dados.meds = meds.docs.map(d => ({ id: d.id, ...d.data() }));
-        dados.profs = profs.docs.map(d => ({ id: d.id, ...d.data() }));
-        dados.pacs = pacs.docs.map(d => ({ id: d.id, ...d.data() }));
-        dados.receitas = receitas.docs.map(d => ({ id: d.id, ...d.data() }));
-
-        document.getElementById('stat-meds').textContent = dados.meds.length;
-        document.getElementById('stat-profs').textContent = dados.profs.length;
-        document.getElementById('stat-pacientes').textContent = dados.pacs.length;
-        document.getElementById('stat-receitas').textContent = dados.receitas.length;
-
-        atualizarGrafico();
-      } catch (err) {
-        notificar('Erro ao carregar dashboard: ' + err.message, 'error');
-      }
-    }
-
-    function atualizarGrafico() {
-      const ctx = document.getElementById('chart-receitas');
-      if (!ctx) return;
-      
-      const hoje = new Date();
-      const labels = [], valores = Array(7).fill(0);
-      
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(hoje); d.setDate(hoje.getDate() - i);
-        labels.push(d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
-      }
-
-      dados.receitas.forEach(r => {
-        if (r.data_criacao) {
-          const data = new Date(r.data_criacao);
-          const diff = Math.floor((hoje - data) / (1000 * 60 * 60 * 24));
-          if (diff >= 0 && diff < 7) valores[6 - diff]++;
-        }
-      });
-
-      if (chartReceitas) chartReceitas.destroy();
-      chartReceitas = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Receitas Emitidas',
-            data: valores,
-            backgroundColor: '#2563eb',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-        }
-      });
-    }
-
-    // ========== CRUD MEDICAMENTOS ==========
+    // ========== MEDICAMENTOS ==========
     async function carregarMedicamentos() {
-      try {
-        const snap = await getDocs(collection(db, COLLECTIONS.MEDICAMENTOS));
-        dados.meds = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderizarTabela('meds');
-      } catch (e) { notificar('Erro ao carregar medicamentos', 'error'); }
+      dados.meds = await fetchAll(COLS.MEDICAMENTOS, 'nome');
+      renderizarTabela('meds');
     }
 
     window.salvarMedicamento = async () => {
-      const id = document.getElementById('med-id-edit').value;
-      const nome = document.getElementById('med-nome').value.trim().toUpperCase();
-      if (!nome) return notificar('Nome é obrigatório', 'error');
-
-      const dadosMed = {
-        nome,
+      const id = document.getElementById('med-id-edit').value || 'NOVO';
+      const payload = {
+        nome: toUpperSafe(document.getElementById('med-nome').value),
         apresentacao: document.getElementById('med-apre').value,
-        dosePadrao: document.getElementById('med-dose').value,
-        indicacao: document.getElementById('med-ind').value.toUpperCase(),
-        atualizado_em: new Date().toISOString()
+        dosePadrao: toUpperSafe(document.getElementById('med-dose').value),
+        indicacao: toUpperSafe(document.getElementById('med-ind').value)
       };
-
-      try {
-        const btn = document.getElementById('btn-salvar-med');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="skeleton" style="width:60px;height:20px;"></span>';
-
-        if (id) {
-          await updateDoc(doc(db, COLLECTIONS.MEDICAMENTOS, id), dadosMed);
-          notificar('Medicamento atualizado com sucesso!', 'success');
-        } else {
-          dadosMed.criado_em = new Date().toISOString();
-          await addDoc(collection(db, COLLECTIONS.MEDICAMENTOS), dadosMed);
-          notificar('Medicamento criado com sucesso!', 'success');
-        }
-        
+      
+      const res = await salvarDoc(COLS.MEDICAMENTOS, id, payload);
+      if(res.success) {
         fecharModal('modal-med');
         carregarMedicamentos();
-      } catch (e) {
-        notificar('Erro ao salvar: ' + e.message, 'error');
-      } finally {
-        document.getElementById('btn-salvar-med').disabled = false;
-        document.getElementById('btn-salvar-med').innerHTML = '<i data-lucide="save" class="icon--sm"></i> Salvar';
-        if (window.lucide) lucide.createIcons();
+        notificar('MEDICAMENTO SALVO COM SUCESSO!', 'success');
       }
     };
 
     window.editarMedicamento = (id) => {
       const m = dados.meds.find(x => x.id === id);
-      if (!m) return;
       document.getElementById('med-id-edit').value = m.id;
-      document.getElementById('med-nome').value = m.nome || '';
+      document.getElementById('med-nome').value = m.nome;
       document.getElementById('med-apre').value = m.apresentacao || 'comprimido';
       document.getElementById('med-dose').value = m.dosePadrao || '';
       document.getElementById('med-ind').value = m.indicacao || '';
-      document.getElementById('modal-med-titulo').textContent = 'Editar Medicamento';
+      document.getElementById('modal-med-titulo').textContent = 'EDITAR MEDICAMENTO';
       abrirModal('modal-med');
     };
 
     window.excluirMedicamento = (id, nome) => {
-      abrirConfirmacao(
-        `Mover "${nome}" para a lixeira?`,
-        async () => {
-          const m = dados.meds.find(x => x.id === id);
-          await softDelete(COLLECTIONS.MEDICAMENTOS, id, m);
-          notificar('Movido para lixeira com sucesso', 'success');
-          carregarMedicamentos();
-        }
-      );
+      abrirConfirmacao(`DESEJA MOVER "${nome}" PARA A LIXEIRA?`, async () => {
+        await softDelete(COLS.MEDICAMENTOS, id);
+        carregarMedicamentos();
+        notificar('MEDICAMENTO MOVIDO PARA LIXEIRA', 'success');
+      });
     };
 
-    // ========== CRUD PROFISSIONAIS (Padrão similar) ==========
+    // ========== PROFISSIONAIS ==========
     async function carregarProfissionais() {
-      try {
-        const snap = await getDocs(collection(db, COLLECTIONS.PROFISSIONAIS));
-        dados.profs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderizarTabela('profs');
-      } catch (e) { notificar('Erro ao carregar profissionais', 'error'); }
+      dados.profs = await fetchAll(COLS.PROFISSIONAIS, 'nome');
+      renderizarTabela('profs');
     }
 
     window.salvarProfissional = async () => {
-      const id = document.getElementById('prof-id-edit').value;
-      const nome = document.getElementById('prof-nome').value.trim();
-      const cargo = document.getElementById('prof-cargo').value;
-      if (!nome) return notificar('Nome é obrigatório', 'error');
-
-      const dadosProf = { nome, cargo, crm_crf: document.getElementById('prof-registro').value.trim(), atualizado_em: new Date().toISOString() };
-      try {
-        if (id) await updateDoc(doc(db, COLLECTIONS.PROFISSIONAIS, id), dadosProf);
-        else { dadosProf.criado_em = new Date().toISOString(); await addDoc(collection(db, COLLECTIONS.PROFISSIONAIS), dadosProf); }
+      const id = document.getElementById('prof-id-edit').value || 'NOVO';
+      const payload = {
+        nome: toUpperSafe(document.getElementById('prof-nome').value),
+        crm_crf: toUpperSafe(document.getElementById('prof-registro').value),
+        cargo: document.getElementById('prof-cargo').value
+      };
+      const res = await salvarDoc(COLS.PROFISSIONAIS, id, payload);
+      if(res.success) {
         fecharModal('modal-prof');
         carregarProfissionais();
-        notificar('Profissional salvo com sucesso!', 'success');
-      } catch (e) { notificar('Erro ao salvar: ' + e.message, 'error'); }
+        notificar('PROFISSIONAL SALVO COM SUCESSO!', 'success');
+      }
     };
 
     window.editarProfissional = (id) => {
@@ -498,154 +443,391 @@
       document.getElementById('prof-nome').value = p.nome;
       document.getElementById('prof-registro').value = p.crm_crf || '';
       document.getElementById('prof-cargo').value = p.cargo;
-      document.getElementById('modal-prof-titulo').textContent = 'Editar Profissional';
+      document.getElementById('modal-prof-titulo').textContent = 'EDITAR PROFISSIONAL';
       abrirModal('modal-prof');
     };
 
     window.excluirProfissional = (id, nome) => {
-      abrirConfirmacao(`Mover "${nome}" para a lixeira?`, async () => {
-        await softDelete(COLLECTIONS.PROFISSIONAIS, id, dados.profs.find(x => x.id === id));
-        notificar('Movido para lixeira', 'success');
+      abrirConfirmacao(`DESEJA MOVER "${nome}" PARA A LIXEIRA?`, async () => {
+        await softDelete(COLS.PROFISSIONAIS, id);
         carregarProfissionais();
+        notificar('PROFISSIONAL MOVIDO PARA LIXEIRA', 'success');
       });
     };
 
-    // ========== PACIENTES & RECEITAS (Funções básicas) ==========
+    // ========== PACIENTES ==========
     async function carregarPacientes() {
-      try {
-        const snap = await getDocs(collection(db, COLLECTIONS.PACIENTES));
-        dados.pacs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderizarTabela('pacs');
-      } catch (e) { notificar('Erro ao carregar pacientes', 'error'); }
+      dados.pacs = await fetchAll(COLS.PACIENTES, 'prontuario');
+      renderizarTabela('pacs');
     }
 
-    async function carregarReceitas() {
-      try {
-        const snap = await getDocs(query(collection(db, COLLECTIONS.RECEITAS), orderBy('data_criacao', 'desc')));
-        dados.receitas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderizarTabela('receitas');
-      } catch (e) { notificar('Erro ao carregar receitas', 'error'); }
+    window.salvarPaciente = async () => {
+      const id = document.getElementById('pac-id-edit').value || document.getElementById('pac-pront').value;
+      const payload = {
+        prontuario: toUpperSafe(document.getElementById('pac-pront').value),
+        nome: toUpperSafe(document.getElementById('pac-nome').value),
+        data_nasc: document.getElementById('pac-nasc').value
+      };
+      const res = await salvarDoc(COLS.PACIENTES, id, payload);
+      if(res.success) {
+        fecharModal('modal-pac');
+        carregarPacientes();
+        notificar('PACIENTE SALVO COM SUCESSO!', 'success');
+      }
+    };
+
+    window.editarPaciente = (id) => {
+      const p = dados.pacs.find(x => x.id === id);
+      document.getElementById('pac-id-edit').value = p.id;
+      document.getElementById('pac-pront').value = p.prontuario;
+      document.getElementById('pac-nome').value = p.nome;
+      document.getElementById('pac-nasc').value = p.data_nasc || '';
+      abrirModal('modal-pac');
+    };
+
+    window.excluirPaciente = (id, nome) => {
+      abrirConfirmacao(`DESEJA MOVER "${nome}" PARA A LIXEIRA?`, async () => {
+        await softDelete(COLS.PACIENTES, id);
+        carregarPacientes();
+        notificar('PACIENTE MOVIDO PARA LIXEIRA', 'success');
+      });
+    };
+
+    // ========== SETORES ==========
+    async function carregarSetores() {
+      dados.setores = await fetchAll(COLS.SETORES, 'nome');
+      renderizarTabela('setores');
     }
 
-    // ========== RENDERIZAÇÃO E FILTROS ==========
+    window.salvarSetor = async () => {
+      const id = document.getElementById('setor-id-edit').value || 'NOVO';
+      const payload = {
+        nome: toUpperSafe(document.getElementById('setor-nome').value),
+        descricao: toUpperSafe(document.getElementById('setor-desc').value)
+      };
+      const res = await salvarDoc(COLS.SETORES, id, payload);
+      if(res.success) {
+        fecharModal('modal-setor');
+        carregarSetores();
+        notificar('SETOR SALVO COM SUCESSO!', 'success');
+      }
+    };
+
+    window.editarSetor = (id) => {
+      const s = dados.setores.find(x => x.id === id);
+      document.getElementById('setor-id-edit').value = s.id;
+      document.getElementById('setor-nome').value = s.nome;
+      document.getElementById('setor-desc').value = s.descricao || '';
+      document.getElementById('modal-setor-titulo').textContent = 'EDITAR SETOR';
+      abrirModal('modal-setor');
+    };
+
+    window.excluirSetor = (id, nome) => {
+      abrirConfirmacao(`DESEJA MOVER "${nome}" PARA A LIXEIRA?`, async () => {
+        await softDelete(COLS.SETORES, id);
+        carregarSetores();
+        notificar('SETOR MOVIDO PARA LIXEIRA', 'success');
+      });
+    };
+
+    // ========== POSOLOGIAS ==========
+    async function carregarPosologias() {
+      dados.posos = await fetchAll(COLS.POSOLOGIAS, 'sintoma');
+      renderizarTabela('posos');
+    }
+
+    window.salvarPosologia = async () => {
+      const id = document.getElementById('poso-id-edit').value || 'NOVO';
+      const payload = {
+        sintoma: toUpperSafe(document.getElementById('poso-sintoma').value),
+        instrucao: toUpperSafe(document.getElementById('poso-instrucao').value),
+        icone: document.getElementById('poso-icone').value
+      };
+      const res = await salvarDoc(COLS.POSOLOGIAS, id, payload);
+      if(res.success) {
+        fecharModal('modal-poso');
+        carregarPosologias();
+        notificar('POSOLOGIA SALVA COM SUCESSO!', 'success');
+      }
+    };
+
+    window.editarPosologia = (id) => {
+      const p = dados.posos.find(x => x.id === id);
+      document.getElementById('poso-id-edit').value = p.id;
+      document.getElementById('poso-sintoma').value = p.sintoma;
+      document.getElementById('poso-instrucao').value = p.instrucao || '';
+      document.getElementById('poso-icone').value = p.icone || '';
+      document.getElementById('modal-poso-titulo').textContent = 'EDITAR POSOLOGIA';
+      abrirModal('modal-poso');
+    };
+
+    window.excluirPosologia = (id, sintoma) => {
+      abrirConfirmacao(`DESEJA MOVER "${sintoma}" PARA A LIXEIRA?`, async () => {
+        await softDelete(COLS.POSOLOGIAS, id);
+        carregarPosologias();
+        notificar('POSOLOGIA MOVIDA PARA LIXEIRA', 'success');
+      });
+    };
+
+    // ========== RENDERIZAÇÃO DE TABELAS ==========
     function renderizarTabela(tipo) {
+      const tbody = document.querySelector(`#tabela-${tipo} tbody`);
       const lista = dados[tipo];
-      const tbody = document.querySelector(`#tabela-${tipo === 'meds' ? 'meds' : tipo === 'profs' ? 'profs' : tipo === 'pacs' ? 'pacs' : 'receitas'} tbody`);
-      if (!lista.length) { tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Nenhum registro encontrado</td></tr>`; return; }
       
+      if(!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="${tipo==='meds'?5:tipo==='profs'?4:tipo==='pacs'?5:tipo==='setores'?3:4}" class="text-center text-muted">NENHUM REGISTRO ENCONTRADO</td></tr>`;
+        return;
+      }
+
       let html = '';
-      if (tipo === 'meds') {
+      if(tipo === 'meds') {
         html = lista.map(m => `
           <tr>
             <td class="font-bold">${m.nome}</td>
-            <td><span class="badge">${m.apresentacao || '-'}</span></td>
+            <td><span style="background:var(--primary-light); padding:4px 8px; border-radius:6px; font-size:0.85rem;">${m.apresentacao}</span></td>
             <td>${m.dosePadrao || '-'}</td>
             <td>${m.indicacao || '-'}</td>
             <td class="table__actions">
-              <button class="btn btn--ghost btn--icon" onclick="editarMedicamento('${m.id}')" aria-label="Editar"><i data-lucide="pencil" class="icon--sm"></i></button>
-              <button class="btn btn--ghost btn--icon" onclick="excluirMedicamento('${m.id}', '${m.nome}')" aria-label="Excluir"><i data-lucide="trash-2" class="icon--sm" style="color:var(--color-danger)"></i></button>
+              <button class="btn btn-outline btn-icon" onclick="editarMedicamento('${m.id}')" title="EDITAR">✏️</button>
+              <button class="btn btn-danger btn-icon" onclick="excluirMedicamento('${m.id}', '${m.nome}')" title="EXCLUIR">🗑️</button>
             </td>
           </tr>`).join('');
-      } else if (tipo === 'profs') {
+      } else if(tipo === 'profs') {
         html = lista.map(p => `
           <tr>
             <td class="font-bold">${p.nome}</td>
             <td>${p.crm_crf || '-'}</td>
-            <td><span class="badge">${p.cargo}</span></td>
+            <td><span style="background:var(--success-light); padding:4px 8px; border-radius:6px; font-size:0.85rem;">${p.cargo}</span></td>
             <td class="table__actions">
-              <button class="btn btn--ghost btn--icon" onclick="editarProfissional('${p.id}')" aria-label="Editar"><i data-lucide="pencil" class="icon--sm"></i></button>
-              <button class="btn btn--ghost btn--icon" onclick="excluirProfissional('${p.id}', '${p.nome}')" aria-label="Excluir"><i data-lucide="trash-2" class="icon--sm" style="color:var(--color-danger)"></i></button>
+              <button class="btn btn-outline btn-icon" onclick="editarProfissional('${p.id}')" title="EDITAR">✏️</button>
+              <button class="btn btn-danger btn-icon" onclick="excluirProfissional('${p.id}', '${p.nome}')" title="EXCLUIR">🗑️</button>
             </td>
           </tr>`).join('');
-      } else if (tipo === 'pacs') {
-        html = lista.map(p => `<tr><td>${p.prontuario}</td><td class="font-bold">${p.nome}</td><td><span class="badge">Editável via receita</span></td></tr>`).join('');
-      } else if (tipo === 'receitas') {
-        html = lista.map(r => {
-          const data = r.data_criacao ? new Date(r.data_criacao).toLocaleDateString('pt-BR') : '-';
-          return `<tr><td>${data}</td><td class="font-bold">${r.paciente_nome}</td><td>${r.prontuario}</td><td>${r.medico_id || '-'}</td>
+      } else if(tipo === 'pacs') {
+        html = lista.map(p => `
+          <tr>
+            <td class="font-bold">${p.prontuario}</td>
+            <td>${p.nome}</td>
+            <td>${formatDate(p.data_nasc)}</td>
+            <td>${calcularIdade(p.data_nasc) || '-'}</td>
             <td class="table__actions">
-              <a href="index.html?receitaId=${r.id}" class="btn btn--ghost btn--icon" aria-label="Visualizar"><i data-lucide="eye" class="icon--sm"></i></a>
-              <button class="btn btn--ghost btn--icon" onclick="confirmarExclusaoReceita('${r.id}')" aria-label="Excluir"><i data-lucide="trash-2" class="icon--sm" style="color:var(--color-danger)"></i></button>
-            </td></tr>`;
-        }).join('');
+              <button class="btn btn-outline btn-icon" onclick="editarPaciente('${p.id}')" title="EDITAR">✏️</button>
+              <button class="btn btn-danger btn-icon" onclick="excluirPaciente('${p.id}', '${p.nome}')" title="EXCLUIR">🗑️</button>
+            </td>
+          </tr>`).join('');
+      } else if(tipo === 'setores') {
+        html = lista.map(s => `
+          <tr>
+            <td class="font-bold">${s.nome}</td>
+            <td>${s.descricao || '-'}</td>
+            <td class="table__actions">
+              <button class="btn btn-outline btn-icon" onclick="editarSetor('${s.id}')" title="EDITAR">✏️</button>
+              <button class="btn btn-danger btn-icon" onclick="excluirSetor('${s.id}', '${s.nome}')" title="EXCLUIR">🗑️</button>
+            </td>
+          </tr>`).join('');
+      } else if(tipo === 'posos') {
+        html = lista.map(p => `
+          <tr>
+            <td class="font-bold">${p.sintoma} ${p.icone || ''}</td>
+            <td>${p.instrucao || '-'}</td>
+            <td style="font-size:1.5rem;">${p.icone || '📋'}</td>
+            <td class="table__actions">
+              <button class="btn btn-outline btn-icon" onclick="editarPosologia('${p.id}')" title="EDITAR">✏️</button>
+              <button class="btn btn-danger btn-icon" onclick="excluirPosologia('${p.id}', '${p.sintoma}')" title="EXCLUIR">🗑️</button>
+            </td>
+          </tr>`).join('');
       }
+
       tbody.innerHTML = html;
-      if (window.lucide) lucide.createIcons();
     }
 
-    function filtrarTabela(tipo, termo) {
-      const t = termo.toLowerCase();
-      const filtrados = dados[tipo].filter(item => {
-        if (tipo === 'meds') return item.nome?.toLowerCase().includes(t);
-        if (tipo === 'pacs') return item.nome?.toLowerCase().includes(t) || item.prontuario?.includes(t);
-        if (tipo === 'receitas') return item.paciente_nome?.toLowerCase().includes(t) || item.prontuario?.includes(t);
-        return true;
-      });
-      const tbody = document.querySelector(`#tabela-${tipo === 'meds' ? 'meds' : tipo} tbody`);
-      if (!filtrados.length) { tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Nenhum resultado</td></tr>`; return; }
-      // Re-renderiza com filtrados (simplificado para exemplo)
-      renderizarTabelaFiltrada(tipo, filtrados);
-    }
+    // FILTROS DE BUSCA
+    document.getElementById('busca-med')?.addEventListener('input', (e) => {
+      const t = toUpperSafe(e.target.value);
+      const filtrados = dados.meds.filter(m => m.nome.includes(t));
+      renderizarTabelaFiltrada('meds', filtrados);
+    });
+
+    document.getElementById('busca-pac')?.addEventListener('input', (e) => {
+      const t = toUpperSafe(e.target.value);
+      const filtrados = dados.pacs.filter(p => p.nome.includes(t) || p.prontuario.includes(t));
+      renderizarTabelaFiltrada('pacs', filtrados);
+    });
 
     function renderizarTabelaFiltrada(tipo, lista) {
-      const tbody = document.querySelector(`#tabela-${tipo === 'meds' ? 'meds' : tipo} tbody`);
-      let html = '';
-      if (tipo === 'meds') html = lista.map(m => `<tr><td>${m.nome}</td><td>${m.apresentacao}</td><td>${m.dosePadrao}</td><td>${m.indicacao}</td><td>...</td></tr>`).join('');
-      tbody.innerHTML = html;
+      const tbody = document.querySelector(`#tabela-${tipo} tbody`);
+      if(!lista.length) { tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">NENHUM RESULTADO</td></tr>`; return; }
+      // Reutiliza lógica de renderização (simplificado para exemplo)
+      // Em produção, extrair a lógica de criação de rows para função separada
+      renderizarTabela(tipo);
     }
 
     // ========== LIXEIRA ==========
+    document.getElementById('lixeira-tipo')?.addEventListener('change', carregarLixeira);
+
     async function carregarLixeira() {
       const tipo = document.getElementById('lixeira-tipo').value;
-      const colecao = COLLECTIONS.LIXEIRA(tipo);
-      const snap = await getDocs(collection(db, colecao));
+      const colecao = `lixeira_${tipo}`;
+      const snap = await getDocs(query(collection(db, colecao), orderBy('_meta.deletado_em', 'desc')));
+      
       const tbody = document.querySelector('#tabela-lixeira tbody');
-      
-      if (snap.empty) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Lixeira vazia</td></tr>`; return; }
-      
-      dados.lixeira = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      tbody.innerHTML = dados.lixeira.map(item => {
-        const data = item._meta?.deletado_em?.toDate ? item._meta.deletado_em.toDate() : new Date(item._meta?.deletado_em || Date.now());
+      if(snap.empty) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">LIXEIRA VAZIA</td></tr>`;
+        return;
+      }
+
+      const itens = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      tbody.innerHTML = itens.map(item => {
+        const data = item._meta?.deletado_em?.toDate ? item._meta.deletado_em.toDate() : new Date();
         return `<tr>
-          <td><code style="font-size:0.8rem; background:#f1f5f9; padding:2px 6px; border-radius:4px;">${item.id.substring(0,8)}...</code></td>
-          <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">${JSON.stringify(item).substring(0, 50)}...</td>
+          <td><code style="font-size:0.75rem; background:var(--bg-input); padding:2px 6px; border-radius:4px;">${item.id.substring(0,10)}...</code></td>
+          <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${JSON.stringify(item).substring(0, 80)}...</td>
           <td>${data.toLocaleString('pt-BR')}</td>
           <td class="table__actions">
-            <button class="btn btn--success" onclick="restaurarItem('${tipo}', '${item.id}')">Restaurar</button>
-            <button class="btn btn--danger" onclick="excluirPermanente('${tipo}', '${item.id}')">Excluir</button>
+            <button class="btn btn-success" onclick="restaurarItem('${tipo}', '${item.id}')">↩️ RESTAURAR</button>
+            <button class="btn btn-danger" onclick="excluirPermanente('${tipo}', '${item.id}')">❌ EXCLUIR</button>
           </td>
         </tr>`;
       }).join('');
     }
 
     window.restaurarItem = async (tipo, id) => {
-      try { await restaurarDaLixeira(tipo, id); notificar('Item restaurado!', 'success'); carregarLixeira(); }
-      catch (e) { notificar('Erro ao restaurar: ' + e.message, 'error'); }
+      try {
+        const lixeiraCol = `lixeira_${tipo}`;
+        const snap = await getDoc(doc(db, lixeiraCol, id));
+        if(!snap.exists()) return;
+        
+        const dados = snap.data();
+        const { _meta, ...dadosRestaurados } = dados;
+        
+        const batch = writeBatch(db);
+        batch.set(doc(db, tipo, id), dadosRestaurados);
+        batch.delete(doc(db, lixeiraCol, id));
+        await batch.commit();
+        
+        carregarLixeira();
+        notificar('ITEM RESTAURADO COM SUCESSO!', 'success');
+      } catch(e) {
+        notificar('ERRO AO RESTAURAR: ' + e.message, 'error');
+      }
     };
+
     window.excluirPermanente = async (tipo, id) => {
-      abrirConfirmacao('Excluir permanentemente? Esta ação não pode ser desfeita.', async () => {
-        await deleteDoc(doc(db, COLLECTIONS.LIXEIRA(tipo), id));
-        notificar('Excluído permanentemente', 'success'); carregarLixeira();
+      abrirConfirmacao('EXCLUIR PERMANENTEMENTE? ESTA AÇÃO NÃO PODE SER DESFEITA.', async () => {
+        await excluirDoc(`lixeira_${tipo}`, id);
+        carregarLixeira();
+        notificar('ITEM EXCLUÍDO PERMANENTEMENTE', 'success');
       });
     };
 
-    // ========== MODAIS & CONFIRMAÇÃO ==========
+    // ========== DASHBOARD (LAZY LOAD) ==========
+    async function carregarDashboard() {
+      if(dashboardCarregado) return;
+      
+      const container = document.getElementById('dashboard-content');
+      container.innerHTML = '<div class="text-center" style="padding:40px;">⏳ CARREGANDO DASHBOARD...</div>';
+      
+      try {
+        // Carrega dados em paralelo
+        const [meds, profs, pacs, receitas] = await Promise.all([
+          fetchAll(COLS.MEDICAMENTOS),
+          fetchAll(COLS.PROFISSIONAIS),
+          fetchAll(COLS.PACIENTES),
+          fetchAll(COLS.RECEITAS)
+        ]);
+
+        // Calcula estatísticas
+        const hoje = new Date();
+        const ultimos7Dias = Array(7).fill(0);
+        const ultimos30Dias = Array(30).fill(0);
+        
+        receitas.forEach(r => {
+          if(r.data_criacao) {
+            const data = new Date(r.data_criacao);
+            const diffDias = Math.floor((hoje - data) / (1000 * 60 * 60 * 24));
+            if(diffDias >= 0 && diffDias < 7) ultimos7Dias[6 - diffDias]++;
+            if(diffDias >= 0 && diffDias < 30) ultimos30Dias[29 - diffDias]++;
+          }
+        });
+
+        const totalReceitas = receitas.length;
+        const totalPacientes = pacs.length;
+        const totalMeds = meds.length;
+        const totalProfs = profs.length;
+
+        // Gera HTML do Dashboard
+        container.innerHTML = `
+          <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:30px;">
+            <div class="card text-center" style="border-left:4px solid var(--primary);">
+              <div style="font-size:2.5rem; font-weight:900; color:var(--primary);">${totalReceitas}</div>
+              <div class="text-muted" style="font-size:0.9rem; margin-top:4px;">TOTAL DE RECEITAS</div>
+            </div>
+            <div class="card text-center" style="border-left:4px solid var(--success);">
+              <div style="font-size:2.5rem; font-weight:900; color:var(--success);">${totalPacientes}</div>
+              <div class="text-muted" style="font-size:0.9rem; margin-top:4px;">PACIENTES CADASTRADOS</div>
+            </div>
+            <div class="card text-center" style="border-left:4px solid var(--warning);">
+              <div style="font-size:2.5rem; font-weight:900; color:var(--warning);">${totalMeds}</div>
+              <div class="text-muted" style="font-size:0.9rem; margin-top:4px;">MEDICAMENTOS PADRÃO</div>
+            </div>
+            <div class="card text-center" style="border-left:4px solid var(--secondary);">
+              <div style="font-size:2.5rem; font-weight:900; color:var(--secondary);">${totalProfs}</div>
+              <div class="text-muted" style="font-size:0.9rem; margin-top:4px;">PROFISSIONAIS</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">📈 RECEITAS NOS ÚLTIMOS 7 DIAS</h3>
+            <div style="display:flex; align-items:flex-end; gap:8px; height:200px; margin-top:20px; padding:10px; background:var(--bg-input); border-radius:var(--radius-md);">
+              ${ultimos7Dias.map((v, i) => {
+                const h = Math.max(v * 20, 4); // Altura mínima 4px
+                const dias = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+                const d = new Date(hoje); d.setDate(hoje.getDate() - (6-i));
+                return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+                  <div style="width:100%; background:var(--primary); border-radius:4px 4px 0 0; height:${h}px; min-height:4px;"></div>
+                  <div style="font-size:0.7rem; margin-top:4px; font-weight:600;">${v}</div>
+                  <div style="font-size:0.65rem; color:var(--text-muted);">${dias[d.getDay()]}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px;">
+            <h3 class="card-title">📊 RECEITAS NOS ÚLTIMOS 30 DIAS</h3>
+            <div style="display:grid; grid-template-columns: repeat(10, 1fr); gap:4px; margin-top:20px;">
+              ${ultimos30Dias.map((v, i) => `
+                <div style="background:${v > 0 ? 'var(--primary)' : 'var(--border)'}; height:${Math.max(v * 15, 8)}px; border-radius:2px; position:relative;" title="DIA ${i+1}: ${v} RECEITAS">
+                  ${v > 0 ? `<span style="position:absolute; bottom:-20px; left:50%; transform:translateX(-50%); font-size:0.65rem; font-weight:600;">${i+1}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+            <div style="text-align:center; margin-top:24px; font-size:0.8rem; color:var(--text-muted);">
+              MÉDIA DIÁRIA: ${(ultimos30Dias.reduce((a,b)=>a+b,0)/30).toFixed(1)} RECEITAS/DIA
+            </div>
+          </div>
+        `;
+        
+        dashboardCarregado = true;
+      } catch(e) {
+        console.error(e);
+        container.innerHTML = `<div class="text-center text-danger" style="padding:40px;">❌ ERRO AO CARREGAR DASHBOARD: ${e.message}</div>`;
+      }
+    }
+
+    // ========== UTILITÁRIOS GERAIS ==========
     window.abrirModal = (id) => {
       const modal = document.getElementById(id);
+      modal.classList.add('open');
       modal.hidden = false;
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      if (window.lucide) lucide.createIcons();
-      // Foco no primeiro input
-      setTimeout(() => modal.querySelector('input')?.focus(), 100);
+      modal.querySelector('input')?.focus();
     };
+
     window.fecharModal = (id) => {
       const modal = document.getElementById(id);
+      modal.classList.remove('open');
       modal.hidden = true;
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
       modal.querySelector('form')?.reset();
-      document.querySelectorAll('input[type="hidden"]').forEach(i => i.value = '');
+      modal.querySelectorAll('input[type="hidden"]').forEach(i => i.value = '');
     };
 
     window.abrirConfirmacao = (msg, callback) => {
@@ -653,35 +835,69 @@
       callbackConfirm = callback;
       abrirModal('modal-confirm');
     };
-    window.fecharConfirmacao = () => fecharModal('modal-confirm');
+
     document.getElementById('confirm-ok').addEventListener('click', () => {
-      if (callbackConfirm) callbackConfirm();
-      fecharConfirmacao();
+      if(callbackConfirm) callbackConfirm();
+      fecharModal('modal-confirm');
     });
 
-    // Fechar ao clicar fora ou ESC
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay[hidden="false"]').forEach(m => fecharModal(m.id));
+    // Fecha modal ao clicar fora
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      m.addEventListener('click', (e) => {
+        if(e.target === m) {
+          m.classList.remove('open');
+          m.hidden = true;
+        }
+      });
+    });
+
+    // Fecha com ESC
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => {
+          m.classList.remove('open');
+          m.hidden = true;
+        });
       }
     });
-    document.querySelectorAll('.modal-overlay').forEach(m => {
-      m.addEventListener('click', e => { if (e.target === m) fecharModal(m.id); });
-    });
 
-    // ========== EXPORTAÇÃO CSV ==========
+    // Exportação CSV
     window.exportarCSV = (tipo) => {
-      const dadosExp = tipo === 'medicamentos' ? dados.meds : tipo === 'profissionais' ? dados.profs : tipo === 'pacientes' ? dados.pacs : dados.receitas;
-      if (!dadosExp.length) return notificar('Nada para exportar', 'warning');
+      const lista = dados[tipo];
+      if(!lista.length) return notificar('NENHUM DADO PARA EXPORTAR', 'warning');
       
-      const chaves = Object.keys(dadosExp[0]);
-      const csv = [chaves.join(','), ...dadosExp.map(obj => chaves.map(c => JSON.stringify(obj[c] || '')).join(','))].join('\n');
+      const chaves = Object.keys(lista[0]).filter(k => !k.includes('_'));
+      const csv = [chaves.join(','), ...lista.map(obj => chaves.map(c => JSON.stringify(obj[c] || '')).join(','))].join('\n');
+      
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${tipo}_${new Date().toISOString().split('T')[0]}.csv`; a.click();
-      notificar('CSV exportado com sucesso!', 'success');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${tipo}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      notificar('CSV EXPORTADO COM SUCESSO!', 'success');
     };
 
-    // Expor funções globais necessárias
+    // Soft Delete Genérico
+    async function softDelete(colecao, id) {
+      const snap = await getDoc(doc(db, colecao, id));
+      if(!snap.exists()) return;
+      
+      const dados = snap.data();
+      const lixeiraCol = `lixeira_${colecao.replace('_padrao','')}`;
+      
+      const batch = writeBatch(db);
+      batch.set(doc(db, lixeiraCol, id), {
+        ...dados,
+        _meta: {
+          deletado_em: Timestamp.now(),
+          colecao_original: colecao
+        }
+      });
+      batch.delete(doc(db, colecao, id));
+      await batch.commit();
+    }
+
+    // Expor funções globais
     window.carregarMedicamentos = carregarMedicamentos;
     window.carregarLixeira = carregarLixeira;
   </script>
