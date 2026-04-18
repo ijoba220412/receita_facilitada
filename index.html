@@ -12,9 +12,10 @@
   <header class="header no-print">
     <div class="header-title">
       <span>📋 RECEITAS FACILITADAS HC IV</span>
-      <span id="status-db" class="badge badge-warning" style="font-size:0.75rem;">CONECTANDO...</span>
+      <span id="status-db" class="badge" style="background:#d97706; color:white; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">CONECTANDO...</span>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a href="admin.html" class="btn btn-outline">⚙️ ADMIN</a>
       <button class="btn btn-success" id="btn-salvar" onclick="salvarReceita()">💾 SALVAR NO HISTÓRICO</button>
       <button class="btn btn-primary" onclick="window.print()">🖨️ IMPRIMIR / PDF</button>
     </div>
@@ -29,7 +30,7 @@
       <div class="form-grid">
         <div class="col-span-2" style="position:relative;">
           <label class="form-label">BUSCAR PACIENTE (NOME OU PRONTUÁRIO)</label>
-          <input type="text" id="busca-paciente" class="form-input" placeholder="Digite para buscar..." autocomplete="off">
+          <input type="text" id="busca-paciente" class="form-input" placeholder="DIGITE PARA BUSCAR..." autocomplete="off">
           <div id="sugestoes-paciente" class="table-container" style="position:absolute; top:100%; left:0; right:0; z-index:50; display:none; max-height:200px; overflow-y:auto;"></div>
         </div>
         <div>
@@ -57,14 +58,21 @@
           <select id="inp-medico" class="form-select"><option value="">CARREGANDO...</option></select>
         </div>
         <div>
+          <label class="form-label">FARMACÊUTICO(A)</label>
+          <select id="inp-farm" class="form-select"><option value="">CARREGANDO...</option></select>
+        </div>
+        <div>
           <label class="form-label">SETOR / HOSPITAL</label>
           <select id="inp-setor" class="form-select"><option value="">CARREGANDO...</option></select>
         </div>
       </div>
 
       <div id="container-receitas-antigas" class="hidden" style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-        <h3 class="form-label">📜 RECEITAS ANTERIORES DESTE PACIENTE</h3>
-        <div id="lista-receitas-antigas" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 class="form-label">📜 RECEITAS ANTERIORES DESTE PACIENTE</h3>
+          <input type="text" id="busca-receitas-historico" class="form-input" placeholder="🔍 FILTRAR RECEITAS..." style="width:200px;">
+        </div>
+        <div id="lista-receitas-antigas" style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto;"></div>
       </div>
     </section>
 
@@ -75,17 +83,17 @@
         <button class="btn btn-primary" onclick="addMed('fixo')">➕ ADICIONAR</button>
       </div>
       <div id="lista-fixos"></div>
-      <div id="msg-vazio-fixos" class="text-center text-muted" style="padding:20px;">Nenhum medicamento fixo adicionado</div>
+      <div id="msg-vazio-fixos" class="text-center text-muted" style="padding:20px;">NENHUM MEDICAMENTO FIXO ADICIONADO</div>
     </section>
 
     <!-- 3. MEDICAMENTOS SOS -->
     <section class="no-print" style="margin-top:24px;">
       <div class="card-header">
         <h2 class="card-title">🚨 USO S.O.S (SINTOMÁTICO)</h2>
-        <button class="btn btn-warning" style="background:var(--warning); color:white;" onclick="addMed('sos')">➕ ADICIONAR SOS</button>
+        <button class="btn" style="background:var(--warning); color:white;" onclick="addMed('sos')">➕ ADICIONAR SOS</button>
       </div>
       <div id="lista-sos"></div>
-      <div id="msg-vazio-sos" class="text-center text-muted" style="padding:20px;">Nenhum medicamento SOS adicionado</div>
+      <div id="msg-vazio-sos" class="text-center text-muted" style="padding:20px;">NENHUM MEDICAMENTO SOS ADICIONADO</div>
     </section>
 
     <!-- 4. PRÉ-VISUALIZAÇÃO A4 (IMPRESSÃO) -->
@@ -100,7 +108,8 @@
             <div class="print-field"><span class="print-field-label">IDADE</span><span class="print-field-value" id="out-idade">___ ANOS</span></div>
             <div class="print-field"><span class="print-field-label">DATA CONSULTA</span><span class="print-field-value" id="out-data">__/__/____</span></div>
             <div class="print-field"><span class="print-field-label">MÉDICO(A)</span><span class="print-field-value" id="out-medico">_______________________</span></div>
-            <div class="print-field col-span-2"><span class="print-field-label">SETOR / HOSPITAL</span><span class="print-field-value" id="out-setor">_______________________</span></div>
+            <div class="print-field"><span class="print-field-label">FARMACÊUTICO(A)</span><span class="print-field-value" id="out-farm">_______________________</span></div>
+            <div class="print-field"><span class="print-field-label">SETOR / HOSPITAL</span><span class="print-field-value" id="out-setor">_______________________</span></div>
           </div>
         </div>
 
@@ -119,7 +128,7 @@
 
         <div class="footer-print">
           <p>ASSISTÊNCIA DOMICILIAR - FARMÁCIA: 3207-3971 | EMERGÊNCIA: 3207-3872 / 3207-3874</p>
-          <p style="margin-top:12px; font-weight:700;">FARMACÊUTICO(A) RESP: <span id="out-farm" style="border-bottom:1px solid #000; padding:0 20px;">______________________________</span></p>
+          <p style="margin-top:12px; font-weight:700;">FARMACÊUTICO(A) RESP: <span id="out-farm-assinatura" style="border-bottom:1px solid #000; padding:0 20px;">______________________________</span></p>
         </div>
       </div>
     </div>
@@ -128,6 +137,7 @@
   <script type="module">
     import { db, COLS, buscarPacientes, salvarDoc, fetchAll, getReceita, formatDate, calcularIdade, notificar, toUpperSafe } from './config.js';
     import { ICONS } from './icons.js';
+    import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // ESTADO DA APLICAÇÃO
     let appFixos = [];
@@ -138,12 +148,14 @@
     let listaMedicamentosDB = [];
     let listaProfissionaisDB = [];
     let listaSetoresDB = [];
+    let cacheReceitas = [];
 
     // INICIALIZAÇÃO
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('inp-data-consulta').valueAsDate = new Date();
       await carregarDadosBase();
       configurarBuscaPaciente();
+      configurarFiltroHistorico();
       verificarModoEdicao();
       sincronizarTela();
     });
@@ -157,26 +169,37 @@
         ]);
 
         const selMed = document.getElementById('inp-medico');
+        const selFarm = document.getElementById('inp-farm');
         const selSetor = document.getElementById('inp-setor');
+        
         selMed.innerHTML = '<option value="">SELECIONE O MÉDICO(A)...</option>';
+        selFarm.innerHTML = '<option value="">SELECIONE O FARMACÊUTICO(A)...</option>';
         selSetor.innerHTML = '<option value="">SELECIONE O SETOR/HOSPITAL...</option>';
 
         listaProfissionaisDB.forEach(p => {
           const txt = `${p.nome}${p.crm_crf ? ' (' + p.crm_crf + ')' : ''}`;
-          selMed.innerHTML += `<option value="${p.id}">${toUpperSafe(txt)}</option>`;
+          const cargo = (p.cargo || '').toUpperCase();
+          if (cargo.includes('FARMAC')) {
+            selFarm.innerHTML += `<option value="${p.id}">${toUpperSafe(txt)}</option>`;
+          } else {
+            selMed.innerHTML += `<option value="${p.id}">${toUpperSafe(txt)}</option>`;
+          }
         });
 
         listaSetoresDB.forEach(s => {
           selSetor.innerHTML += `<option value="${s.id}">${toUpperSafe(s.nome)}</option>`;
         });
 
+        // Cache inicial de receitas para busca rápida
+        cacheReceitas = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
+
         const status = document.getElementById('status-db');
         status.textContent = 'CONECTADO';
-        status.className = 'badge badge-success';
+        status.style.background = '#059669';
       } catch (e) {
         console.error(e);
-        document.getElementById('status-db').textContent = 'ERRO DE CONEXÃO';
-        notificar('Falha ao carregar dados base', 'error');
+        document.getElementById('status-db').textContent = 'ERRO';
+        notificar('FALHA AO CARREGAR DADOS BASE', 'error');
       }
     }
 
@@ -212,41 +235,6 @@
     }
 
     window.selecionarPaciente = async (id) => {
-      const p = await db.doc(`${COLS.PACIENTES}/${id}`).get ? (await db.collection(COLS.PACIENTES).doc(id).get()) : null; 
-      // Ajuste para compatibilidade com SDK v10 modular usado no config.js
-      // Vamos buscar via getDoc manualmente ou confiar que fetchAll já pegou.
-      // Como buscarPacientes já retorna os dados completos, vamos usá-los diretamente se possível, 
-      // mas para garantir consistência, faremos uma chamada direta:
-      const snap = await db.collection(COLS.PACIENTES).doc(id).get(); // Fallback compatível
-      // Nota: O config.js exporta funções modulares. Vou usar a lógica direta do fetchAll que já temos em memória ou refazer a busca específica.
-      // Para simplificar e garantir funcionamento com o config.js fornecido, usarei os dados já filtrados:
-      const dados = await buscarPacientes(id); // Busca exata pelo ID se for numérico, ou nome.
-      // Melhor: refatorar brevemente para usar getDoc do config se necessário, mas vou manter simples:
-      // O config.js não exporta getDoc direto. Vou assumir que o fetchAll/buscarPacientes já traz os dados.
-      // Para garantir, vou buscar novamente via fetchAll com filtro ou usar o array local.
-      // Vou ajustar para usar o DB_UTILS global se necessário, mas o módulo já está limpo.
-      // Vamos usar a função nativa do Firestore já importada no config? Não, config encapsula.
-      // Solução: usar os dados já retornados pelo buscarPacientes que já foram filtrados.
-      const paciente = (await buscarPacientes(id)).find(p => p.id === id) || (await buscarPacientes(document.getElementById('busca-paciente').value)).find(p => p.id === id);
-      
-      if(paciente) {
-        document.getElementById('inp-prontuario').value = paciente.prontuario || '';
-        document.getElementById('inp-nome').value = paciente.nome || '';
-        document.getElementById('inp-nasc').value = paciente.data_nasc || '';
-        document.getElementById('busca-paciente').value = '';
-        document.getElementById('sugestoes-paciente').style.display = 'none';
-        atualizarIdade();
-        sincronizarTela();
-        await carregarReceitasAnteriores(paciente.prontuario);
-      }
-    };
-
-    // Correção segura para busca de paciente por ID usando o padrão do config
-    // Vamos injetar uma busca rápida direta via fetchAll com filtro de ID se necessário, 
-    // mas para não travar, usarei o dado já carregado ou farei fetch direto.
-    // Reescrevendo a função selecionarPaciente de forma robusta:
-    window.selecionarPaciente = async (id) => {
-      // Busca direta no Firestore via config (usando fetchAll e filtrando localmente para manter consistência)
       const todos = await fetchAll(COLS.PACIENTES);
       const p = todos.find(doc => doc.id === id);
       if(!p) return;
@@ -256,32 +244,77 @@
       document.getElementById('inp-nasc').value = p.data_nasc || '';
       document.getElementById('busca-paciente').value = '';
       document.getElementById('sugestoes-paciente').style.display = 'none';
+      
       atualizarIdade();
       sincronizarTela();
-      await carregarReceitasAnteriores(p.prontuario);
+      await carregarReceitasAnteriores(p.prontuario, p.nome);
     };
 
-    async function carregarReceitasAnteriores(prontuario) {
+    async function carregarReceitasAnteriores(prontuario, nomePaciente) {
       const container = document.getElementById('container-receitas-antigas');
       const lista = document.getElementById('lista-receitas-antigas');
-      try {
-        const snap = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
-        const filtradas = snap.filter(r => r.prontuario === prontuario);
-        if(filtradas.length === 0) {
-          container.classList.add('hidden');
-          return;
-        }
-        container.classList.remove('hidden');
-        lista.innerHTML = filtradas.map(r => `
-          <div class="card" style="margin-bottom:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+      
+      // Filtra cache local por prontuário, nome ou aba_origem (compatibilidade antiga)
+      const termoBusca = (prontuario || nomePaciente || '').toUpperCase();
+      const filtradas = cacheReceitas.filter(r => {
+        const rPront = (r.prontuario || '').toUpperCase();
+        const rNome = (r.paciente_nome || r.aba_origem || '').toUpperCase();
+        return rPront.includes(termoBusca) || rNome.includes(termoBusca);
+      });
+
+      if(filtradas.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+      
+      renderizarListaHistorico(filtradas);
+    }
+
+    function renderizarListaHistorico(lista) {
+      const container = document.getElementById('lista-receitas-antigas');
+      const filtro = document.getElementById('busca-receitas-historico').value.toUpperCase();
+      const filtradas = lista.filter(r => {
+        const texto = `${r.paciente_nome || r.aba_origem || ''} ${r.prontuario || ''} ${r.medico_id || ''}`.toUpperCase();
+        return texto.includes(filtro);
+      });
+
+      if(filtradas.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted">NENHUMA RECEITA ENCONTRADA</div>';
+        return;
+      }
+
+      container.innerHTML = filtradas.map(r => {
+        const data = formatDate(r.data_criacao || r.data_atualizacao);
+        const nome = toUpperSafe(r.paciente_nome || r.aba_origem || 'PACIENTE');
+        return `
+          <div class="card" style="margin-bottom:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="editarReceita('${r.id}')">
             <div>
-              <div class="font-bold">${formatDate(r.data_criacao)} - ${toUpperSafe(r.medico_id || 'MÉDICO NÃO INFORMADO')}</div>
-              <div class="text-muted" style="font-size:0.85rem;">FIXOS: ${r.medicamentos_fixos?.length || 0} | SOS: ${r.medicamentos_sos?.length || 0}</div>
+              <div class="font-bold">${data} - ${nome}</div>
+              <div class="text-muted" style="font-size:0.85rem;">PRONT: ${r.prontuario || '-'} | MÉD: ${toUpperSafe(r.medico_id || '-')} | FIXOS: ${r.medicamentos_fixos?.length || 0}</div>
             </div>
-            <button class="btn btn-outline btn-icon" onclick="editarReceita('${r.id}')" aria-label="Editar receita">✏️</button>
+            <button class="btn btn-outline btn-icon" aria-label="Editar receita">✏️</button>
           </div>
-        `).join('');
-      } catch(e) { console.error(e); }
+        `;
+      }).join('');
+    }
+
+    function configurarFiltroHistorico() {
+      document.getElementById('busca-receitas-historico')?.addEventListener('input', () => {
+        const container = document.getElementById('container-receitas-antigas');
+        if(!container.classList.contains('hidden')) {
+          // Re-renderiza com filtro atual (simplificado: recarrega do cache)
+          const pront = document.getElementById('inp-prontuario').value;
+          const nome = document.getElementById('inp-nome').value;
+          const termoBusca = (pront || nome || '').toUpperCase();
+          const filtradas = cacheReceitas.filter(r => {
+            const rPront = (r.prontuario || '').toUpperCase();
+            const rNome = (r.paciente_nome || r.aba_origem || '').toUpperCase();
+            return rPront.includes(termoBusca) || rNome.includes(termoBusca);
+          });
+          renderizarListaHistorico(filtradas);
+        }
+      });
     }
 
     window.atualizarIdade = () => {
@@ -301,6 +334,11 @@
       const medOpt = document.querySelector(`#inp-medico option[value="${medId}"]`);
       document.getElementById('out-medico').textContent = toUpperSafe(medOpt?.text || '_______________________');
 
+      const farmId = document.getElementById('inp-farm').value;
+      const farmOpt = document.querySelector(`#inp-farm option[value="${farmId}"]`);
+      document.getElementById('out-farm').textContent = toUpperSafe(farmOpt?.text || '_______________________');
+      document.getElementById('out-farm-assinatura').textContent = toUpperSafe(farmOpt?.text || '______________________________');
+
       const setId = document.getElementById('inp-setor').value;
       const setOpt = document.querySelector(`#inp-setor option[value="${setId}"]`);
       document.getElementById('out-setor').textContent = toUpperSafe(setOpt?.text || '_______________________');
@@ -310,9 +348,10 @@
 
     document.getElementById('inp-data-consulta').addEventListener('change', sincronizarTela);
     document.getElementById('inp-medico').addEventListener('change', sincronizarTela);
+    document.getElementById('inp-farm').addEventListener('change', sincronizarTela);
     document.getElementById('inp-setor').addEventListener('change', sincronizarTela);
 
-    // MODO EDIÇÃO
+    // MODO EDIÇÃO & ADAPTADOR DE DADOS ANTIGOS
     async function verificarModoEdicao() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get('receitaId');
@@ -323,23 +362,60 @@
       window.location.href = `index.html?receitaId=${id}`;
     };
 
+    // ADAPTADOR: Converte dados antigos para o novo padrão
+    function normalizarReceita(rec) {
+      return {
+        id: rec.id,
+        prontuario: rec.prontuario || '',
+        paciente_nome: toUpperSafe(rec.paciente_nome || rec.aba_origem || ''),
+        data_nasc: rec.data_nasc || '',
+        medico_id: rec.medico_id || '',
+        farmaceutico_id: rec.farmaceutico_id || '',
+        setor_id: rec.setor_id || '',
+        data_consulta: rec.data_consulta || rec.data_criacao?.split('T')[0] || new Date().toISOString().split('T')[0],
+        data_criacao: rec.data_criacao,
+        medicamentos_fixos: (rec.medicamentos_fixos || []).map((m, i) => ({
+          id: m.id || `fixo_${i}`,
+          nome: toUpperSafe(m.nome || ''),
+          apresentacao: m.apresentacao || 'comprimido',
+          dose: m.dose || m.texto_original_da_posologia?.split(' ')[0] || '1',
+          indicacao: toUpperSafe(m.indicacao || ''),
+          horarios: m.horarios || {},
+          instrucoes: toUpperSafe(m.instrucoes || ''),
+          sintoma: m.sintoma || ''
+        })),
+        medicamentos_sos: (rec.medicamentos_sos || []).map((m, i) => ({
+          id: m.id || `sos_${i}`,
+          nome: toUpperSafe(m.nome || ''),
+          apresentacao: m.apresentacao || 'comprimido',
+          dose: m.dose || '1',
+          indicacao: toUpperSafe(m.indicacao || ''),
+          horarios: m.horarios || {},
+          instrucoes: toUpperSafe(m.instrucoes || m.texto_original_da_posologia || ''),
+          sintoma: m.sintoma || ''
+        }))
+      };
+    }
+
     async function carregarReceitaParaEdicao(id) {
       const rec = await getReceita(id);
-      if(!rec) return notificar('Receita não encontrada', 'error');
+      if(!rec) return notificar('RECEITA NÃO ENCONTRADA', 'error');
       
+      const norm = normalizarReceita(rec);
       modoEdicao = true;
       receitaIdAtual = id;
       
-      document.getElementById('inp-prontuario').value = rec.prontuario || '';
-      document.getElementById('inp-nome').value = rec.paciente_nome || '';
-      document.getElementById('inp-nasc').value = rec.data_nasc || '';
-      document.getElementById('inp-data-consulta').value = rec.data_consulta || new Date().toISOString().split('T')[0];
-      document.getElementById('inp-medico').value = rec.medico_id || '';
-      document.getElementById('inp-setor').value = rec.setor_id || '';
+      document.getElementById('inp-prontuario').value = norm.prontuario;
+      document.getElementById('inp-nome').value = norm.paciente_nome;
+      document.getElementById('inp-nasc').value = norm.data_nasc;
+      document.getElementById('inp-data-consulta').value = norm.data_consulta;
+      document.getElementById('inp-medico').value = norm.medico_id;
+      document.getElementById('inp-farm').value = norm.farmaceutico_id;
+      document.getElementById('inp-setor').value = norm.setor_id;
       
-      appFixos = rec.medicamentos_fixos || [];
-      appSos = rec.medicamentos_sos || [];
-      contadorId = Math.max(0, ...appFixos.map(m=>m.id), ...appSos.map(m=>m.id)) + 1;
+      appFixos = norm.medicamentos_fixos;
+      appSos = norm.medicamentos_sos;
+      contadorId = Math.max(0, ...appFixos.map(m=>m.id.toString().replace(/\D/g,'')||0), ...appSos.map(m=>m.id.toString().replace(/\D/g,'')||0)) + 1;
       
       atualizarIdade();
       renderizarListaMed('fixo');
@@ -385,7 +461,6 @@
         card.className = `card ${tipo === 'sos' ? 'sos-card' : ''}`;
         card.innerHTML = criarHTMLMedCard(item, tipo);
         container.appendChild(card);
-        bindCardEvents(item.id, tipo);
       });
     }
 
@@ -393,10 +468,9 @@
       const isSos = tipo === 'sos';
       const medOpts = listaMedicamentosDB.map(m => `<option value="${m.nome}" ${item.nome === m.nome ? 'selected' : ''}>${toUpperSafe(m.nome)}</option>`).join('');
       
-      // Gerador de Grid Visual
       const gerarGrid = (dados, campo, atual, onClickFn) => {
         return `<div class="visual-aid-grid">` + Object.entries(dados).map(([key, val]) => `
-          <button type="button" class="aid-btn ${atual === key || atual[key] ? 'active' : ''}" data-val="${key}" onclick="${onClickFn}('${item.id}', '${tipo}', '${campo}', '${key}')">
+          <button type="button" class="aid-btn ${atual === key || (typeof atual === 'object' && atual[key]) ? 'active' : ''}" onclick="${onClickFn}('${item.id}', '${tipo}', '${campo}', '${key}')">
             <span>${val.icone}</span>
             <span style="font-size:0.7rem; font-weight:700;">${toUpperSafe(val.label)}</span>
           </button>
@@ -446,10 +520,6 @@
       `;
     }
 
-    function bindCardEvents(id, tipo) {
-      // Eventos já estão inline no HTML para simplicidade e performance
-    }
-
     window.atualizarCampo = (id, tipo, campo, valor) => {
       const lista = tipo === 'fixo' ? appFixos : appSos;
       const item = lista.find(m => m.id === id);
@@ -460,13 +530,13 @@
         const manualInput = document.querySelector(`#lista-${tipo} input[oninput*="nome"]`);
         if(valor === 'OUTRO' && manualInput) manualInput.style.display = 'block';
         else if(manualInput) manualInput.style.display = 'none';
-      } else if (campo === 'horarios') {
-        // Tratado separadamente
       } else {
         item[campo] = toUpperSafe(valor);
       }
       sincronizarTela();
-      if(campo !== 'nome') renderizarListaMed(tipo); // Re-renderiza para atualizar botões ativos
+      if(campo !== 'nome' && campo !== 'dose' && campo !== 'indicacao' && campo !== 'instrucoes') {
+        renderizarListaMed(tipo);
+      }
     };
 
     window.toggleHorario = (id, tipo, campo, hora) => {
@@ -480,12 +550,10 @@
 
     // RENDERIZAÇÃO DA RECEITA (PREVIEW A4)
     function renderizarPreview() {
-      // Cabeçalho Tabela Fixos
       let th = '<tr><th style="width:30%; text-align:left; padding-left:15px;">MEDICAMENTO</th>';
       Object.entries(ICONS.horarios).forEach(([h, d]) => th += `<th style="background:${d.cor}20; color:${d.cor};">${d.icone} ${h}</th>`);
       document.getElementById('thead-fixos').innerHTML = th + '</tr>';
 
-      // Corpo Fixos
       const tbodyF = document.getElementById('tbody-fixos');
       if(appFixos.length === 0) {
         tbodyF.innerHTML = '<tr><td colspan="10" class="text-center text-muted">NENHUM MEDICAMENTO FIXO PRESCRITO</td></tr>';
@@ -511,7 +579,6 @@
         }).join('');
       }
 
-      // SOS
       const containerSos = document.getElementById('container-sos-preview');
       const tbodyS = document.getElementById('tbody-sos');
       if(appSos.length === 0) {
@@ -558,6 +625,7 @@
         paciente_nome: toUpperSafe(nome),
         data_nasc: document.getElementById('inp-nasc').value,
         medico_id: medico,
+        farmaceutico_id: document.getElementById('inp-farm').value,
         setor_id: document.getElementById('inp-setor').value,
         data_consulta: document.getElementById('inp-data-consulta').value,
         medicamentos_fixos: appFixos,
@@ -566,7 +634,6 @@
       };
 
       try {
-        // Salva/Atualiza paciente automaticamente
         await salvarDoc(COLS.PACIENTES, pront, { 
           nome: toUpperSafe(nome), 
           prontuario: pront, 
@@ -581,6 +648,9 @@
           await salvarDoc(COLS.RECEITAS, 'NOVO', payload);
           notificar('✅ RECEITA SALVA NO HISTÓRICO!', 'success');
         }
+        
+        // Atualiza cache local
+        cacheReceitas = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
         
         setTimeout(() => {
           btn.disabled = false;
