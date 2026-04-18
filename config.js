@@ -1,17 +1,15 @@
 /**
- * HC IV - Configuração Centralizada do Firebase e Lógica de Negócio
+ * HC IV - Configuração Centralizada do Firebase
  * Arquivo: config.js
- * Compatível com Vercel + GitHub + Firebase
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
   getFirestore, collection, getDocs, doc, setDoc, addDoc, 
   deleteDoc, getDoc, query, where, orderBy, updateDoc, 
-  writeBatch, Timestamp, limit 
+  writeBatch, Timestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// CONFIGURAÇÃO DO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDqyKxM4idfyKhRssyq-M7Yzb5lCSWS1sU",
   authDomain: "receita-facilitada.firebaseapp.com",
@@ -24,26 +22,21 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// NOMES DAS COLEÇÕES
 export const COLS = {
   PACIENTES: 'pacientes',
   PROFISSIONAIS: 'profissionais',
   MEDICAMENTOS: 'medicamentos_padrao',
   RECEITAS: 'receitas',
-  SETORES: 'setores_hospitais', // Nova coleção para Setores/Hospitais
-  POSOLOGIAS: 'posologias_padrao', // Nova coleção para Posologias Personalizadas
-  ICONES: 'icones_personalizados' // Coleção para ícones/imagem customizados se precisar
+  SETORES: 'setores_hospitais',
+  POSOLOGIAS: 'posologias_padrao'
 };
 
-// ========== UTILITÁRIOS GERAIS ==========
-
-// Converte qualquer texto para MAIÚSCULAS e sanitiza
+// ========== UTILITÁRIOS ==========
 export function toUpperSafe(text) {
   if (!text) return '';
   return text.toString().toUpperCase().trim();
 }
 
-// Formata data para exibição: DD/MM/YYYY
 export function formatDate(dateVal) {
   if (!dateVal) return '-';
   const d = dateVal instanceof Timestamp ? dateVal.toDate() : new Date(dateVal);
@@ -51,7 +44,6 @@ export function formatDate(dateVal) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-// Calcula idade baseada na data de nascimento
 export function calcularIdade(nascString) {
   if (!nascString) return '';
   const nasc = new Date(nascString);
@@ -62,79 +54,52 @@ export function calcularIdade(nascString) {
   return idade > 0 ? `${idade} ANOS` : '';
 }
 
-// Notificação visual (Toast)
 export function notificar(msg, tipo = 'info') {
   const existing = document.querySelectorAll('.toast');
   existing.forEach(e => e.remove());
-
   const div = document.createElement('div');
   div.className = `toast toast-${tipo}`;
-  div.innerHTML = `
-    <span class="toast-msg">${msg}</span>
-    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-  `;
+  div.innerHTML = `<span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
   document.body.appendChild(div);
   setTimeout(() => div.remove(), 4000);
 }
 
-// ========== FUNÇÕES DE BANCO DE DADOS (GENÉRICAS) ==========
+// ========== BANCO DE DADOS SEGURO ==========
 
-// Busca documentos com debounce implícito na chamada
-// No seu config.js, substitua a função fetchAll por esta versão mais resiliente:
-export async function fetchAll(colName, sortField = 'nome', sortOrder = 'asc') {
+export async function fetchAll(colName, sortField = null, sortOrder = 'asc') {
   try {
-    // Tenta ordenar no servidor
-    let snap;
-    try {
-      const q = query(collection(db, colName), orderBy(sortField, sortOrder));
-      snap = await getDocs(q);
-    } catch (e) {
-      // Fallback seguro se o campo de ordenação não existir em alguns docs
-      snap = await getDocs(collection(db, colName));
-    }
-    
+    const snap = await getDocs(collection(db, colName));
     let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     
-    // Ordenação no cliente como fallback seguro
     if (sortField) {
       docs.sort((a, b) => {
         const valA = a[sortField] || '';
         const valB = b[sortField] || '';
-        return sortOrder === 'asc' 
-          ? String(valA).localeCompare(String(valB)) 
-          : String(valB).localeCompare(String(valA));
+        return sortOrder === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
       });
     }
     return docs;
   } catch (err) {
     console.error(`Erro ao buscar ${colName}:`, err);
-    notificar(`Erro ao carregar ${colName}`, 'error');
     return [];
   }
 }
 
-// Busca paciente por nome ou prontuário (Otimizado para busca parcial)
 export async function buscarPacientes(termo) {
   if (!termo || termo.length < 2) return [];
   try {
-    // Como Firestore não tem LIKE nativo, trazemos um conjunto e filtramos no cliente
-    // Para produção com muitos dados, usar Algolia ou ElasticSearch
     const snap = await getDocs(collection(db, COLS.PACIENTES));
     const t = toUpperSafe(termo);
     return snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .filter(p => 
-        toUpperSafe(p.nome)?.includes(t) || 
-        p.prontuario?.toString().includes(t)
-      )
+      .filter(p => toUpperSafe(p.nome)?.includes(t) || String(p.prontuario || '').includes(termo))
       .slice(0, 15);
   } catch (e) { return []; }
 }
 
-// Salvar ou Atualizar Documento Genérico
+// CORREÇÃO: Usa setDoc com merge para criar ou atualizar sem erro
 export async function salvarDoc(colName, id, data) {
   try {
-    // Garante que campos de texto fiquem maiúsculos
     const cleanData = {};
     for (const [key, value] of Object.entries(data)) {
       cleanData[key] = typeof value === 'string' ? toUpperSafe(value) : value;
@@ -142,8 +107,9 @@ export async function salvarDoc(colName, id, data) {
     }
     
     if (id && id !== 'NOVO') {
-      await updateDoc(doc(db, colName, id), cleanData);
-      return { id, success: true, mode: 'update' };
+      // Cria o documento se não existir, ou atualiza se existir
+      await setDoc(doc(db, colName, id), cleanData, { merge: true });
+      return { id, success: true, mode: 'upsert' };
     } else {
       cleanData.criado_em = new Date().toISOString();
       const ref = await addDoc(collection(db, colName), cleanData);
@@ -156,7 +122,6 @@ export async function salvarDoc(colName, id, data) {
   }
 }
 
-// Excluir Documento (Soft Delete ou Hard Delete)
 export async function excluirDoc(colName, id) {
   try {
     await deleteDoc(doc(db, colName, id));
@@ -167,19 +132,6 @@ export async function excluirDoc(colName, id) {
   }
 }
 
-// Função específica para carregar dados iniciais do Admin sem travar o Dashboard
-export async function carregarDadosAdmin() {
-  const [meds, profs, pacs, receitas, setores] = await Promise.all([
-    fetchAll(COLS.MEDICAMENTOS, 'nome'),
-    fetchAll(COLS.PROFISSIONAIS, 'nome'),
-    fetchAll(COLS.PACIENTES, 'nome'),
-    fetchAll(COLS.RECEITAS, 'data_criacao', 'desc'), // Ordenado do mais recente
-    fetchAll(COLS.SETORES, 'nome')
-  ]);
-  return { meds, profs, pacs, receitas, setores };
-}
-
-// Recupera uma receita específica para edição ou visualização
 export async function getReceita(id) {
   try {
     const ref = doc(db, COLS.RECEITAS, id);
@@ -192,10 +144,6 @@ export async function getReceita(id) {
   }
 }
 
-// Exportar para escopo global para facilitar uso nos HTMLs
 if (typeof window !== 'undefined') {
-  window.DB_UTILS = {
-    db, COLS, fetchAll, buscarPacientes, salvarDoc, excluirDoc,
-    carregarDadosAdmin, getReceita, formatDate, calcularIdade, notificar, toUpperSafe
-  };
+  window.DB_UTILS = { db, COLS, fetchAll, buscarPacientes, salvarDoc, excluirDoc, getReceita, formatDate, calcularIdade, notificar, toUpperSafe };
 }
