@@ -29,9 +29,12 @@
       </div>
       <div class="form-grid">
         <div class="col-span-2" style="position:relative;">
-          <label class="form-label">BUSCAR PACIENTE (NOME OU PRONTUÁRIO)</label>
-          <input type="text" id="busca-paciente" class="form-input" placeholder="DIGITE PARA BUSCAR..." autocomplete="off">
-          <div id="sugestoes-paciente" class="table-container" style="position:absolute; top:100%; left:0; right:0; z-index:50; display:none; max-height:200px; overflow-y:auto;"></div>
+          <label class="form-label">BUSCAR OU CADASTRAR PACIENTE</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="busca-paciente" class="form-input" placeholder="DIGITE NOME OU PRONTUÁRIO..." autocomplete="off" style="flex:1;">
+            <button class="btn btn-success" onclick="abrirModal('modal-novo-paciente')" style="white-space:nowrap;">➕ NOVO</button>
+          </div>
+          <div id="sugestoes-paciente" class="table-container" style="position:absolute; top:100%; left:0; right:0; z-index:50; display:none; max-height:200px; overflow-y:auto; margin-top:4px;"></div>
         </div>
         <div>
           <label class="form-label">PRONTUÁRIO</label>
@@ -51,7 +54,7 @@
         </div>
         <div>
           <label class="form-label">DATA DA CONSULTA</label>
-          <input type="date" id="inp-data-consulta" class="form-input" value="">
+          <input type="date" id="inp-data-consulta" class="form-input">
         </div>
         <div>
           <label class="form-label">MÉDICO(A)</label>
@@ -67,12 +70,13 @@
         </div>
       </div>
 
+      <!-- HISTÓRICO DE RECEITAS -->
       <div id="container-receitas-antigas" class="hidden" style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h3 class="form-label">📜 RECEITAS ANTERIORES DESTE PACIENTE</h3>
-          <input type="text" id="busca-receitas-historico" class="form-input" placeholder="🔍 FILTRAR RECEITAS..." style="width:200px;">
+          <h3 class="form-label" style="margin:0;">📜 RECEITAS ANTERIORES</h3>
+          <input type="text" id="busca-receitas-historico" class="form-input" placeholder="🔍 FILTRAR NO HISTÓRICO..." style="width:220px;">
         </div>
-        <div id="lista-receitas-antigas" style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto;"></div>
+        <div id="lista-receitas-antigas" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto;"></div>
       </div>
     </section>
 
@@ -134,6 +138,34 @@
     </div>
   </main>
 
+  <!-- MODAL: NOVO PACIENTE RÁPIDO -->
+  <div id="modal-novo-paciente" class="modal-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="modal" style="max-width:450px;">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ CADASTRAR NOVO PACIENTE</h3>
+        <button class="btn btn-ghost btn-icon" onclick="fecharModal('modal-novo-paciente')">✕</button>
+      </div>
+      <form onsubmit="event.preventDefault(); salvarNovoPaciente();">
+        <div class="form-group">
+          <label class="form-label form-label--required">PRONTUÁRIO (NÚMERO)</label>
+          <input type="text" id="novo-pac-pront" class="form-input" required placeholder="EX: 5042552">
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label--required">NOME COMPLETO</label>
+          <input type="text" id="novo-pac-nome" class="form-input" required placeholder="NOME DO PACIENTE">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DATA DE NASCIMENTO</label>
+          <input type="date" id="novo-pac-nasc" class="form-input">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-novo-paciente')">CANCELAR</button>
+          <button type="submit" class="btn btn-success">✅ CADASTRAR E SELECIONAR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module">
     import { db, COLS, buscarPacientes, salvarDoc, fetchAll, getReceita, formatDate, calcularIdade, notificar, toUpperSafe } from './config.js';
     import { ICONS } from './icons.js';
@@ -190,7 +222,7 @@
           selSetor.innerHTML += `<option value="${s.id}">${toUpperSafe(s.nome)}</option>`;
         });
 
-        // Cache inicial de receitas para busca rápida
+        // Carrega cache de receitas com tratamento de erro
         cacheReceitas = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
 
         const status = document.getElementById('status-db');
@@ -250,15 +282,44 @@
       await carregarReceitasAnteriores(p.prontuario, p.nome);
     };
 
+    // CADASTRO RÁPIDO DE NOVO PACIENTE
+    window.salvarNovoPaciente = async () => {
+      const pront = document.getElementById('novo-pac-pront').value.trim();
+      const nome = document.getElementById('novo-pac-nome').value.trim();
+      const nasc = document.getElementById('novo-pac-nasc').value;
+      
+      if(!pront || !nome) return notificar('PREENCHA PRONTUÁRIO E NOME', 'error');
+
+      const payload = { prontuario: pront, nome: toUpperSafe(nome), data_nasc: nasc };
+      const res = await salvarDoc(COLS.PACIENTES, pront, payload);
+      
+      if(res.success) {
+        fecharModal('modal-novo-paciente');
+        notificar('PACIENTE CADASTRADO COM SUCESSO!', 'success');
+        // Simula seleção automática
+        document.getElementById('inp-prontuario').value = pront;
+        document.getElementById('inp-nome').value = toUpperSafe(nome);
+        document.getElementById('inp-nasc').value = nasc;
+        atualizarIdade();
+        sincronizarTela();
+        containerReceitasAntigas.classList.add('hidden');
+      }
+    };
+
+    // HISTÓRICO DE RECEITAS (CORRIGIDO)
     async function carregarReceitasAnteriores(prontuario, nomePaciente) {
       const container = document.getElementById('container-receitas-antigas');
       const lista = document.getElementById('lista-receitas-antigas');
       
-      // Filtra cache local por prontuário, nome ou aba_origem (compatibilidade antiga)
-      const termoBusca = (prontuario || nomePaciente || '').toUpperCase();
+      // Força atualização do cache para garantir dados recentes
+      cacheReceitas = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
+      
+      const termoBusca = (prontuario || nomePaciente || '').toUpperCase().trim();
+      if(!termoBusca) { container.classList.add('hidden'); return; }
+
       const filtradas = cacheReceitas.filter(r => {
-        const rPront = (r.prontuario || '').toUpperCase();
-        const rNome = (r.paciente_nome || r.aba_origem || '').toUpperCase();
+        const rPront = String(r.prontuario || '').toUpperCase();
+        const rNome = String(r.paciente_nome || r.aba_origem || '').toUpperCase();
         return rPront.includes(termoBusca) || rNome.includes(termoBusca);
       });
 
@@ -267,20 +328,19 @@
         return;
       }
       container.classList.remove('hidden');
-      
       renderizarListaHistorico(filtradas);
     }
 
     function renderizarListaHistorico(lista) {
       const container = document.getElementById('lista-receitas-antigas');
-      const filtro = document.getElementById('busca-receitas-historico').value.toUpperCase();
+      const filtro = (document.getElementById('busca-receitas-historico').value || '').toUpperCase();
       const filtradas = lista.filter(r => {
         const texto = `${r.paciente_nome || r.aba_origem || ''} ${r.prontuario || ''} ${r.medico_id || ''}`.toUpperCase();
         return texto.includes(filtro);
       });
 
       if(filtradas.length === 0) {
-        container.innerHTML = '<div class="text-center text-muted">NENHUMA RECEITA ENCONTRADA</div>';
+        container.innerHTML = '<div class="text-center text-muted" style="padding:10px;">NENHUMA RECEITA ENCONTRADA</div>';
         return;
       }
 
@@ -303,13 +363,12 @@
       document.getElementById('busca-receitas-historico')?.addEventListener('input', () => {
         const container = document.getElementById('container-receitas-antigas');
         if(!container.classList.contains('hidden')) {
-          // Re-renderiza com filtro atual (simplificado: recarrega do cache)
           const pront = document.getElementById('inp-prontuario').value;
           const nome = document.getElementById('inp-nome').value;
           const termoBusca = (pront || nome || '').toUpperCase();
           const filtradas = cacheReceitas.filter(r => {
-            const rPront = (r.prontuario || '').toUpperCase();
-            const rNome = (r.paciente_nome || r.aba_origem || '').toUpperCase();
+            const rPront = String(r.prontuario || '').toUpperCase();
+            const rNome = String(r.paciente_nome || r.aba_origem || '').toUpperCase();
             return rPront.includes(termoBusca) || rNome.includes(termoBusca);
           });
           renderizarListaHistorico(filtradas);
@@ -351,18 +410,7 @@
     document.getElementById('inp-farm').addEventListener('change', sincronizarTela);
     document.getElementById('inp-setor').addEventListener('change', sincronizarTela);
 
-    // MODO EDIÇÃO & ADAPTADOR DE DADOS ANTIGOS
-    async function verificarModoEdicao() {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('receitaId');
-      if(id) await carregarReceitaParaEdicao(id);
-    }
-
-    window.editarReceita = async (id) => {
-      window.location.href = `index.html?receitaId=${id}`;
-    };
-
-    // ADAPTADOR: Converte dados antigos para o novo padrão
+    // ADAPTADOR DE DADOS ANTIGOS
     function normalizarReceita(rec) {
       return {
         id: rec.id,
@@ -378,7 +426,7 @@
           id: m.id || `fixo_${i}`,
           nome: toUpperSafe(m.nome || ''),
           apresentacao: m.apresentacao || 'comprimido',
-          dose: m.dose || m.texto_original_da_posologia?.split(' ')[0] || '1',
+          dose: String(m.dose || m.texto_original_da_posologia?.split(' ')[0] || '1'),
           indicacao: toUpperSafe(m.indicacao || ''),
           horarios: m.horarios || {},
           instrucoes: toUpperSafe(m.instrucoes || ''),
@@ -388,7 +436,7 @@
           id: m.id || `sos_${i}`,
           nome: toUpperSafe(m.nome || ''),
           apresentacao: m.apresentacao || 'comprimido',
-          dose: m.dose || '1',
+          dose: String(m.dose || '1'),
           indicacao: toUpperSafe(m.indicacao || ''),
           horarios: m.horarios || {},
           instrucoes: toUpperSafe(m.instrucoes || m.texto_original_da_posologia || ''),
@@ -396,6 +444,17 @@
         }))
       };
     }
+
+    // MODO EDIÇÃO
+    async function verificarModoEdicao() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('receitaId');
+      if(id) await carregarReceitaParaEdicao(id);
+    }
+
+    window.editarReceita = async (id) => {
+      window.location.href = `index.html?receitaId=${id}`;
+    };
 
     async function carregarReceitaParaEdicao(id) {
       const rec = await getReceita(id);
@@ -415,7 +474,7 @@
       
       appFixos = norm.medicamentos_fixos;
       appSos = norm.medicamentos_sos;
-      contadorId = Math.max(0, ...appFixos.map(m=>m.id.toString().replace(/\D/g,'')||0), ...appSos.map(m=>m.id.toString().replace(/\D/g,'')||0)) + 1;
+      contadorId = Math.max(0, ...appFixos.map(m=>parseInt(String(m.id).replace(/\D/g,''))||0), ...appSos.map(m=>parseInt(String(m.id).replace(/\D/g,''))||0)) + 1;
       
       atualizarIdade();
       renderizarListaMed('fixo');
@@ -433,7 +492,7 @@
       document.getElementById('btn-salvar').innerHTML = '💾 SALVAR NO HISTÓRICO';
     };
 
-    // GERENCIAMENTO DE MEDICAMENTOS
+    // GERENCIAMENTO DE MEDICAMENTOS (CORRIGIDO)
     window.addMed = (tipo) => {
       const id = contadorId++;
       const item = { id, nome:'', apresentacao:'comprimido', dose:'1', indicacao:'', horarios:{}, sintoma:'', instrucoes:'' };
@@ -502,9 +561,9 @@
           </div>
           
           <div style="margin-top:12px;">
-            <label class="form-label">${isSos ? '🚨 SINTOMA ALVO' : '📋 PARA QUE SERVE?'}</label>
+            <label class="form-label">${isSos ? '🚨 SINTOMA ALVO' : '📋 PARA QUE SERVE? (POSOLOGIA)'}</label>
             ${isSos ? gerarGrid(ICONS.sintomas, 'sintoma', item.sintoma, 'atualizarCampo') : 
-              `<input type="text" class="form-input" value="${toUpperSafe(item.indicacao)}" oninput="atualizarCampo(${item.id}, '${tipo}', 'indicacao', this.value)" placeholder="EX: PARA DOR">`}
+              `<input type="text" class="form-input" value="${toUpperSafe(item.indicacao)}" oninput="atualizarCampo(${item.id}, '${tipo}', 'indicacao', this.value)" placeholder="EX: PARA DOR DE CABEÇA">`}
           </div>
 
           ${!isSos ? `
@@ -520,23 +579,20 @@
       `;
     }
 
+    // CORREÇÃO CRÍTICA: Não re-renderiza o card inteiro ao digitar dose/nome/posologia
     window.atualizarCampo = (id, tipo, campo, valor) => {
       const lista = tipo === 'fixo' ? appFixos : appSos;
       const item = lista.find(m => m.id === id);
       if(!item) return;
       
-      if(campo === 'nome') {
-        item.nome = toUpperSafe(valor);
-        const manualInput = document.querySelector(`#lista-${tipo} input[oninput*="nome"]`);
-        if(valor === 'OUTRO' && manualInput) manualInput.style.display = 'block';
-        else if(manualInput) manualInput.style.display = 'none';
-      } else {
-        item[campo] = toUpperSafe(valor);
-      }
-      sincronizarTela();
-      if(campo !== 'nome' && campo !== 'dose' && campo !== 'indicacao' && campo !== 'instrucoes') {
+      item[campo] = typeof valor === 'string' ? toUpperSafe(valor) : valor;
+      
+      // Só re-renderiza visualmente se mudar aparência, sintoma ou horário
+      if(campo === 'apresentacao' || campo === 'sintoma' || campo === 'horarios') {
         renderizarListaMed(tipo);
       }
+      // Para dose, nome, indicacao, instrucoes -> atualiza só a tela de preview e mantém foco
+      sincronizarTela();
     };
 
     window.toggleHorario = (id, tipo, campo, hora) => {
@@ -562,7 +618,7 @@
           const apres = ICONS.apresentacoes[item.apresentacao] || ICONS.apresentacoes['comprimido'];
           let row = `<tr><td class="cell-med-name">
             <div class="med-name-title">${toUpperSafe(item.nome || '-')}</div>
-            <div class="med-name-ind">${toUpperSafe(item.indicacao || '')}</div>
+            <div class="med-name-ind">${toUpperSafe(item.indicacao || 'SEM INDICAÇÃO')}</div>
           </td>`;
           
           Object.keys(ICONS.horarios).forEach(h => {
@@ -601,7 +657,7 @@
               </div>
             </td>
             <td style="text-align:left; padding:15px; vertical-align:middle;">
-              <div style="font-weight:700; margin-bottom:6px;">📝 ${toUpperSafe(item.instrucoes || 'SEGUIR ORIENTAÇÃO')}</div>
+              <div style="font-weight:700; margin-bottom:6px;">📝 ${toUpperSafe(item.instrucoes || 'SEGUIR ORIENTAÇÃO MÉDICA')}</div>
             </td>
           </tr>`;
         }).join('');
@@ -649,7 +705,7 @@
           notificar('✅ RECEITA SALVA NO HISTÓRICO!', 'success');
         }
         
-        // Atualiza cache local
+        // Atualiza cache local imediatamente
         cacheReceitas = await fetchAll(COLS.RECEITAS, 'data_criacao', 'desc');
         
         setTimeout(() => {
@@ -663,6 +719,40 @@
         btn.innerHTML = modoEdicao ? '💾 ATUALIZAR RECEITA' : '💾 SALVAR';
       }
     };
+
+    // MODAIS
+    window.abrirModal = (id) => {
+      const modal = document.getElementById(id);
+      modal.classList.add('open');
+      modal.hidden = false;
+      modal.querySelector('input')?.focus();
+    };
+
+    window.fecharModal = (id) => {
+      const modal = document.getElementById(id);
+      modal.classList.remove('open');
+      modal.hidden = true;
+      modal.querySelector('form')?.reset();
+      modal.querySelectorAll('input[type="hidden"]').forEach(i => i.value = '');
+    };
+
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      m.addEventListener('click', (e) => {
+        if(e.target === m) {
+          m.classList.remove('open');
+          m.hidden = true;
+        }
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => {
+          m.classList.remove('open');
+          m.hidden = true;
+        });
+      }
+    });
   </script>
 </body>
 </html>
