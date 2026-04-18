@@ -317,17 +317,42 @@
     }
 
     function renderizarListaHistorico(lista) {
-      const container = document.getElementById('lista-receitas-antigas');
-      const filtro = (document.getElementById('busca-receitas-historico').value || '').toUpperCase();
-      const filtradas = lista.filter(r => {
-        const texto = `${r.paciente_nome || r.aba_origem || ''} ${r.prontuario || ''} ${r.medico_id || ''}`.toUpperCase();
-        return texto.includes(filtro);
-      });
+  const container = document.getElementById('lista-receitas-antigas');
+  const filtro = (document.getElementById('busca-receitas-historico').value || '').toUpperCase();
+  const filtradas = lista.filter(r => {
+    const texto = `${r.paciente_nome || r.aba_origem || ''} ${r.prontuario || ''} ${r.medico_id || ''}`.toUpperCase();
+    return texto.includes(filtro);
+  });
 
-      if(filtradas.length === 0) {
-        container.innerHTML = '<div class="text-center text-muted" style="padding:10px;">NENHUM RESULTADO NO FILTRO</div>';
-        return;
-      }
+  if(filtradas.length === 0) {
+    container.innerHTML = '<div class="text-center text-muted" style="padding:10px;">NENHUM RESULTADO NO FILTRO</div>';
+    return;
+  }
+
+  container.innerHTML = filtradas.map(r => {
+    const data = formatDate(r.data_criacao || r.data_atualizacao);
+    const nome = toUpperSafe(r.paciente_nome || r.aba_origem || 'PACIENTE');
+    // CONTAGEM BLINDADA: verifica se é array antes de contar
+    const qtdFixos = Array.isArray(r.medicamentos_fixos) ? r.medicamentos_fixos.length : 0;
+    const qtdSos = Array.isArray(r.medicamentos_sos) ? r.medicamentos_sos.length : 0;
+    const totalMeds = qtdFixos + qtdSos;
+    
+    return `
+      <div class="card" style="margin-bottom:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="editarReceita('${r.id}')">
+        <div>
+          <div class="font-bold">${data} - ${nome}</div>
+          <div class="text-muted" style="font-size:0.85rem;">
+            PRONT: ${r.prontuario || '-'} | MÉD: ${toUpperSafe(r.medico_id || '-')}
+            <span style="margin-left:12px; padding:2px 8px; background:var(--primary-light); color:var(--primary); border-radius:12px; font-weight:700; font-size:0.75rem;">
+              💊 ${totalMeds} MED${totalMeds !== 1 ? 'S' : ''} (${qtdFixos} FIXO${qtdFixos !== 1 ? 'S' : ''} + ${qtdSos} SOS)
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-icon" aria-label="Editar receita">✏️</button>
+      </div>
+    `;
+  }).join('');
+}
 
       container.innerHTML = filtradas.map(r => {
         const data = formatDate(r.data_criacao || r.data_atualizacao);
