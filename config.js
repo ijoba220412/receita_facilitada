@@ -80,11 +80,32 @@ export function notificar(msg, tipo = 'info') {
 // ========== FUNÇÕES DE BANCO DE DADOS (GENÉRICAS) ==========
 
 // Busca documentos com debounce implícito na chamada
+// No seu config.js, substitua a função fetchAll por esta versão mais resiliente:
 export async function fetchAll(colName, sortField = 'nome', sortOrder = 'asc') {
   try {
-    const q = query(collection(db, colName), orderBy(sortField, sortOrder));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Tenta ordenar no servidor
+    let snap;
+    try {
+      const q = query(collection(db, colName), orderBy(sortField, sortOrder));
+      snap = await getDocs(q);
+    } catch (e) {
+      // Fallback seguro se o campo de ordenação não existir em alguns docs
+      snap = await getDocs(collection(db, colName));
+    }
+    
+    let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    // Ordenação no cliente como fallback seguro
+    if (sortField) {
+      docs.sort((a, b) => {
+        const valA = a[sortField] || '';
+        const valB = b[sortField] || '';
+        return sortOrder === 'asc' 
+          ? String(valA).localeCompare(String(valB)) 
+          : String(valB).localeCompare(String(valA));
+      });
+    }
+    return docs;
   } catch (err) {
     console.error(`Erro ao buscar ${colName}:`, err);
     notificar(`Erro ao carregar ${colName}`, 'error');
