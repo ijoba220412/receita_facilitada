@@ -47,8 +47,7 @@
           <label class="form-label">DATA DE NASCIMENTO</label>
           <input type="date" id="inp-nasc" class="form-input" onchange="atualizarIdade()">
         </div>
-        <div>
-          <label class="form-label">IDADE (AUTO)</label>
+        <div>          <label class="form-label">IDADE (AUTO)</label>
           <input type="text" id="inp-idade" class="form-input" readonly style="background:#f1f5f9; font-weight:bold;">
         </div>
         <div>
@@ -97,8 +96,7 @@
       <div id="msg-vazio-sos" class="text-center text-muted" style="padding:20px;">NENHUM MEDICAMENTO SOS ADICIONADO</div>
     </section>
 
-    <div class="print-container">
-      <div class="a4-sheet">
+    <div class="print-container">      <div class="a4-sheet">
         <div class="print-header">
           <div class="print-title">HOSPITAL DO CÂNCER IV – HC IV</div>
           <div class="print-info-grid">
@@ -147,8 +145,7 @@
         </div>
         <div class="form-group">
           <label class="form-label form-label--required">NOME COMPLETO</label>
-          <input type="text" id="novo-pac-nome" class="form-input" required placeholder="NOME DO PACIENTE">
-        </div>
+          <input type="text" id="novo-pac-nome" class="form-input" required placeholder="NOME DO PACIENTE">        </div>
         <div class="form-group">
           <label class="form-label">DATA DE NASCIMENTO</label>
           <input type="date" id="novo-pac-nasc" class="form-input">
@@ -197,8 +194,7 @@
         const selFarm = document.getElementById('inp-farm');
         const selSetor = document.getElementById('inp-setor');
         
-        selMed.innerHTML = '<option value="">SELECIONE O MÉDICO(A)...</option>';
-        selFarm.innerHTML = '<option value="">SELECIONE O FARMACÊUTICO(A)...</option>';
+        selMed.innerHTML = '<option value="">SELECIONE O MÉDICO(A)...</option>';        selFarm.innerHTML = '<option value="">SELECIONE O FARMACÊUTICO(A)...</option>';
         selSetor.innerHTML = '<option value="">SELECIONE O SETOR/HOSPITAL...</option>';
 
         listaProfissionaisDB.forEach(p => {
@@ -210,19 +206,17 @@
 
         listaSetoresDB.forEach(s => selSetor.innerHTML += `<option value="${s.id}">${toUpperSafe(s.nome)}</option>`);
 
-        // CARREGAMENTO ROBUSTO DE RECEITAS (SEM ORDERBY NO SERVIDOR)
         const snap = await getDocs(collection(db, COLS.RECEITAS));
         cacheReceitas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Ordena no cliente para evitar erros de índice
         cacheReceitas.sort((a, b) => (b.data_criacao || b.data_atualizacao || '').localeCompare(a.data_criacao || a.data_atualizacao || ''));
 
         const status = document.getElementById('status-db');
         status.textContent = 'CONECTADO';
         status.style.background = '#059669';
       } catch (e) {
-        console.error(e);
-        document.getElementById('status-db').textContent = 'ERRO';
-        notificar('FALHA AO CARREGAR DADOS BASE', 'error');
+        console.error('ERRO AO CARREGAR:', e);
+        document.getElementById('status-db').textContent = 'ERRO CONEXÃO';
+        notificar('FALHA AO CONECTAR: ' + e.message, 'error');
       }
     }
 
@@ -249,8 +243,7 @@
         }, 300);
       });
 
-      document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !lista.contains(e.target)) lista.style.display = 'none';
+      document.addEventListener('click', (e) => {        if (!input.contains(e.target) && !lista.contains(e.target)) lista.style.display = 'none';
       });
     }
 
@@ -297,18 +290,16 @@
       const termoBusca = String(prontuario || nomePaciente || '').toUpperCase().trim();
       if(!termoBusca) { container.classList.add('hidden'); return; }
 
-      // Filtragem flexível para dados antigos e novos
       const filtradas = cacheReceitas.filter(r => {
         const rPront = String(r.prontuario || '').toUpperCase();
-        const rNome = String(r.paciente_nome || r.aba_origem || '').toUpperCase();
-        return rPront.includes(termoBusca) || rNome.includes(termoBusca);
+        const rNome = String(r.paciente_nome || r.aba_origem || '').toUpperCase();        return rPront.includes(termoBusca) || rNome.includes(termoBusca);
       });
 
       badge.textContent = `${filtradas.length} ENCONTRADA${filtradas.length !== 1 ? 'S' : ''}`;
       
       if(filtradas.length === 0) {
         container.classList.remove('hidden');
-        listaDiv.innerHTML = '<div class="text-center text-muted" style="padding:15px; background:var(--bg-input); border-radius:8px;">NENHUMA RECEITA ENCONTRADA PARA ESTE PACIENTE</div>';
+        listaDiv.innerHTML = '<div class="text-center text-muted" style="padding:15px; background:var(--bg-input); border-radius:8px;">NENHUMA RECEITA ENCONTRADA</div>';
         return;
       }
       
@@ -317,57 +308,40 @@
     }
 
     function renderizarListaHistorico(lista) {
-  const container = document.getElementById('lista-receitas-antigas');
-  const filtro = (document.getElementById('busca-receitas-historico').value || '').toUpperCase();
-  const filtradas = lista.filter(r => {
-    const texto = `${r.paciente_nome || r.aba_origem || ''} ${r.prontuario || ''} ${r.medico_id || ''}`.toUpperCase();
-    return texto.includes(filtro);
-  });
+      const container = document.getElementById('lista-receitas-antigas');
+      const filtro = (document.getElementById('busca-receitas-historico').value || '').toUpperCase();
+      const filtradas = lista.filter(r => {
+        const texto = `${r.paciente_nome || r.aba_origem || ''} ${r.prontuario || ''} ${r.medico_id || ''}`.toUpperCase();
+        return texto.includes(filtro);
+      });
 
-  if(filtradas.length === 0) {
-    container.innerHTML = '<div class="text-center text-muted" style="padding:10px;">NENHUM RESULTADO NO FILTRO</div>';
-    return;
-  }
-
-  container.innerHTML = filtradas.map(r => {
-    const data = formatDate(r.data_criacao || r.data_atualizacao);
-    const nome = toUpperSafe(r.paciente_nome || r.aba_origem || 'PACIENTE');
-    // CONTAGEM BLINDADA: verifica se é array antes de contar
-    const qtdFixos = Array.isArray(r.medicamentos_fixos) ? r.medicamentos_fixos.length : 0;
-    const qtdSos = Array.isArray(r.medicamentos_sos) ? r.medicamentos_sos.length : 0;
-    const totalMeds = qtdFixos + qtdSos;
-    
-    return `
-      <div class="card" style="margin-bottom:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="editarReceita('${r.id}')">
-        <div>
-          <div class="font-bold">${data} - ${nome}</div>
-          <div class="text-muted" style="font-size:0.85rem;">
-            PRONT: ${r.prontuario || '-'} | MÉD: ${toUpperSafe(r.medico_id || '-')}
-            <span style="margin-left:12px; padding:2px 8px; background:var(--primary-light); color:var(--primary); border-radius:12px; font-weight:700; font-size:0.75rem;">
-              💊 ${totalMeds} MED${totalMeds !== 1 ? 'S' : ''} (${qtdFixos} FIXO${qtdFixos !== 1 ? 'S' : ''} + ${qtdSos} SOS)
-            </span>
-          </div>
-        </div>
-        <button class="btn btn-outline btn-icon" aria-label="Editar receita">✏️</button>
-      </div>
-    `;
-  }).join('');
-}
+      if(filtradas.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted" style="padding:10px;">NENHUM RESULTADO NO FILTRO</div>';
+        return;
+      }
 
       container.innerHTML = filtradas.map(r => {
         const data = formatDate(r.data_criacao || r.data_atualizacao);
         const nome = toUpperSafe(r.paciente_nome || r.aba_origem || 'PACIENTE');
+        const qtdFixos = Array.isArray(r.medicamentos_fixos) ? r.medicamentos_fixos.length : 0;
+        const qtdSos = Array.isArray(r.medicamentos_sos) ? r.medicamentos_sos.length : 0;
+        const totalMeds = qtdFixos + qtdSos;
+        
         return `
           <div class="card" style="margin-bottom:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="editarReceita('${r.id}')">
             <div>
               <div class="font-bold">${data} - ${nome}</div>
-              <div class="text-muted" style="font-size:0.85rem;">PRONT: ${r.prontuario || '-'} | MÉD: ${toUpperSafe(r.medico_id || '-')} | FIXOS: ${r.medicamentos_fixos?.length || 0}</div>
+              <div class="text-muted" style="font-size:0.85rem;">
+                PRONT: ${r.prontuario || '-'} | MÉD: ${toUpperSafe(r.medico_id || '-')}
+                <span style="margin-left:12px; padding:2px 8px; background:var(--primary-light); color:var(--primary); border-radius:12px; font-weight:700; font-size:0.75rem;">
+                  💊 ${totalMeds} MED${totalMeds !== 1 ? 'S' : ''} (${qtdFixos} FIXO${qtdFixos !== 1 ? 'S' : ''} + ${qtdSos} SOS)
+                </span>
+              </div>
             </div>
             <button class="btn btn-outline btn-icon" aria-label="Editar receita">✏️</button>
           </div>
         `;
-      }).join('');
-    }
+      }).join('');    }
 
     function configurarFiltroHistorico() {
       document.getElementById('busca-receitas-historico')?.addEventListener('input', () => {
@@ -416,8 +390,7 @@
     }
 
     document.getElementById('inp-data-consulta').addEventListener('change', sincronizarTela);
-    document.getElementById('inp-medico').addEventListener('change', sincronizarTela);
-    document.getElementById('inp-farm').addEventListener('change', sincronizarTela);
+    document.getElementById('inp-medico').addEventListener('change', sincronizarTela);    document.getElementById('inp-farm').addEventListener('change', sincronizarTela);
     document.getElementById('inp-setor').addEventListener('change', sincronizarTela);
 
     function normalizarReceita(rec) {
@@ -466,8 +439,7 @@
       const rec = await getReceita(id);
       if(!rec) return notificar('RECEITA NÃO ENCONTRADA', 'error');
       
-      const norm = normalizarReceita(rec);
-      modoEdicao = true; receitaIdAtual = id;
+      const norm = normalizarReceita(rec);      modoEdicao = true; receitaIdAtual = id;
       
       document.getElementById('inp-prontuario').value = norm.prontuario;
       document.getElementById('inp-nome').value = norm.paciente_nome;
@@ -516,8 +488,7 @@
       container.innerHTML = '';
       msg.classList.toggle('hidden', lista.length > 0);
       lista.forEach(item => {
-        const card = document.createElement('div');
-        card.className = `card ${tipo === 'sos' ? 'sos-card' : ''}`;
+        const card = document.createElement('div');        card.className = `card ${tipo === 'sos' ? 'sos-card' : ''}`;
         card.innerHTML = criarHTMLMedCard(item, tipo);
         container.appendChild(card);
       });
@@ -566,8 +537,7 @@
 
     window.atualizarCampo = (id, tipo, campo, valor) => {
       const lista = tipo === 'fixo' ? appFixos : appSos;
-      const item = lista.find(m => m.id === id);
-      if(!item) return;
+      const item = lista.find(m => m.id === id);      if(!item) return;
       item[campo] = typeof valor === 'string' ? toUpperSafe(valor) : valor;
       if(campo === 'apresentacao' || campo === 'sintoma' || campo === 'horarios') renderizarListaMed(tipo);
       sincronizarTela();
@@ -616,7 +586,6 @@
         }).join('');
       }
     }
-
     window.salvarReceita = async () => {
       const pront = document.getElementById('inp-prontuario').value.trim();
       const nome = document.getElementById('inp-nome').value.trim();
